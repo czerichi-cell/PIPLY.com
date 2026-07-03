@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block title %}Feed – Piply{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1>Feed</h1>
+</div>
+
+<div class="card">
+  <form class="composer" method="post" action="{{ url_for('social.new_post') }}" enctype="multipart/form-data">
+    <textarea name="content" placeholder="Co se dnes dělo na trhu? Sdílej obchod, myšlenku, screenshot…" maxlength="2000"></textarea>
+    <div class="field-row">
+      <div class="field" style="margin-bottom:0">
+        <label>Fotka (volitelné)</label>
+        <div class="upload-zone" data-upload-zone style="min-height:80px">
+          <input type="file" name="image" accept="image/*">
+          <div class="upload-empty">
+            <svg viewBox="0 0 24 24"><path d="M4 16l4-5 3 3 5-6 4 5M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z"/></svg>
+            <span class="upload-browse">Vybrat fotku</span>
+          </div>
+          <div class="upload-preview" style="display:none">
+            <img class="upload-preview-img" src="" alt="">
+            <div class="upload-preview-overlay">Změnit fotku</div>
+          </div>
+        </div>
+      </div>
+      <div class="field" style="margin-bottom:0">
+        <label>Viditelnost</label>
+        <select name="visibility" class="visibility-select">
+          <option value="friends" selected>Jen přátelé</option>
+          <option value="public">Veřejné</option>
+          <option value="only_me">Jen já</option>
+        </select>
+      </div>
+    </div>
+    <button type="submit" class="btn" style="align-self:flex-end">Přidat příspěvek</button>
+  </form>
+</div>
+
+{% if posts %}
+  {% for post in posts %}
+    {% include "social/_post.html" %}
+  {% endfor %}
+{% else %}
+  <div class="empty-state">
+    <p>Feed je zatím prázdný. Přidej první příspěvek nebo si <a href="{{ url_for('social.friends_list') }}">najdi kamarády</a>.</p>
+  </div>
+{% endif %}
+{% endblock %}

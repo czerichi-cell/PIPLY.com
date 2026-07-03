@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}Notifikace – Piply{% endblock %}
+{% block content %}
+<div class="page-header"><h1>Notifikace</h1></div>
+
+<div class="card">
+{% if notes %}
+  {% for note in notes %}
+    <div class="notif-row {{ 'unread' if not note['is_read'] }}">
+      <div class="notif-icon">
+        {% if note['type'] == 'message' %}
+          <svg viewBox="0 0 24 24"><path d="M4 4h16v13H7l-3 3z"/></svg>
+        {% elif note['type'] in ('friend_request','friend_accept') %}
+          <svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><path d="M2 20c0-4 3-6 7-6s7 2 7 6"/></svg>
+        {% elif note['type'] == 'like' %}
+          <svg viewBox="0 0 24 24"><path d="M20.8 4.6a5.5 5.5 0 00-7.8 0L12 5.6l-1-1a5.5 5.5 0 00-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 000-7.8z"/></svg>
+        {% else %}
+          <svg viewBox="0 0 24 24"><path d="M4 4h16v13H7l-3 3z"/></svg>
+        {% endif %}
+      </div>
+      <div>
+        <div class="notif-text">
+          {% if note['actor_username'] %}
+            <a href="{{ url_for('profile.view_profile', username=note['actor_username']) }}"><b>{{ note['actor_display_name'] or note['actor_username'] }}</b></a>
+          {% endif %}
+          {{ note['message'] }}
+          {% if note['type'] == 'friend_request' %}
+            — <a href="{{ url_for('social.friends_list') }}">zobrazit žádosti</a>
+          {% elif note['type'] == 'message' and note['actor_username'] %}
+            — <a href="{{ url_for('messages_bp.thread', username=note['actor_username']) }}">odpovědět</a>
+          {% endif %}
+        </div>
+        <div class="notif-time">{{ note['created_at']|dt }}</div>
+      </div>
+    </div>
+  {% endfor %}
+{% else %}
+  <div class="empty-state"><p>Zatím žádné notifikace.</p></div>
+{% endif %}
+</div>
+{% endblock %}

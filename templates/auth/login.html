@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}Přihlášení – Piply{% endblock %}
+{% block auth_content %}
+<div class="auth-card">
+  <img class="auth-logo" src="{{ url_for('static', filename='img/piply-white-transparent-cropped.png') }}" alt="Piply">
+  <div class="auth-title">Vítej zpátky</div>
+  <div class="auth-sub">Přihlas se ke svému trader účtu</div>
+
+  <form method="post">
+    <div class="field">
+      <label for="username">Uživatelské jméno nebo e-mail</label>
+      <input type="text" id="username" name="username" autofocus required>
+    </div>
+    <div class="field">
+      <label for="password">Heslo</label>
+      <input type="password" id="password" name="password" required>
+    </div>
+    <div class="field" style="display:flex; align-items:center; gap:8px">
+      <input type="checkbox" id="remember" name="remember" value="1" style="width:auto" checked>
+      <label for="remember" style="margin:0">Zůstat přihlášen</label>
+    </div>
+    <button type="submit" class="btn btn-block">Přihlásit se</button>
+  </form>
+
+  <div class="auth-foot">Nemáš účet? <a href="{{ url_for('auth.register') }}">Zaregistruj se</a></div>
+</div>
+{% endblock %}

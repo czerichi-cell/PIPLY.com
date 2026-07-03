@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}Import obchodů – Piply{% endblock %}
+{% block content %}
+<div class="page-header"><h1>Import z MT4 / CSV</h1></div>
+
+<div class="card" style="max-width:640px">
+  <form method="post" enctype="multipart/form-data">
+    <div class="upload-drop" style="margin-bottom:14px">
+      <input type="file" name="csv_file" accept=".csv,.txt" required style="border:none">
+    </div>
+    <button type="submit" class="btn">Naimportovat</button>
+  </form>
+</div>
+
+<div class="card" style="max-width:640px">
+  <div class="card-title">Jak na export z MT4</div>
+  <p class="muted">V MetaTraderu 4 otevři záložku <b>Historie účtu</b>, pravým tlačítkem vyber <b>Uložit jako sestavu</b> (HTML), otevři soubor v Excelu / Google Sheets a ulož jako <b>CSV</b>. Nebo obchody zapisuj rovnou do vlastního CSV podle vzoru níže.</p>
+  <div class="divider"></div>
+  <p class="muted" style="margin-bottom:6px">Rozpoznávané sloupce (stačí některé, nezáleží na pořadí ani velikosti písmen):</p>
+  <div class="table-wrap">
+  <table>
+    <tr><th>Symbol</th><th>Type</th><th>Size</th><th>Open Price</th><th>Close Price</th><th>S/L</th><th>T/P</th><th>Open Time</th><th>Close Time</th><th>Profit</th></tr>
+    <tr class="mono">
+      <td>EURUSD</td><td>buy</td><td>0.10</td><td>1.0850</td><td>1.0910</td><td>1.0800</td><td>1.0950</td><td>2025-01-10 09:15</td><td>2025-01-10 14:30</td><td>60.00</td>
+    </tr>
+  </table>
+  </div>
+  <p class="muted" style="margin-top:10px">Povinné jsou jen sloupce <b>Symbol</b> a <b>Profit</b> — zbytek se doplní, pokud existuje.</p>
+</div>
+{% endblock %}

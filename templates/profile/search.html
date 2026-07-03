@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}Hledání – Piply{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1>Hledání</h1>
+  <form action="{{ url_for('profile.search_users') }}" method="get">
+    <input type="text" name="q" value="{{ q }}" placeholder="Jméno nebo přezdívka…" autofocus style="width:240px">
+  </form>
+</div>
+
+{% if q and not results %}
+  <div class="empty-state"><p>Nikdo odpovídající „{{ q }}" nenalezen.</p></div>
+{% elif results %}
+  <div class="people-grid">
+  {% for u in results %}
+    <a class="person-card" href="{{ url_for('profile.view_profile', username=u['username']) }}">
+      <img class="avatar avatar-md" src="{{ url_for('static', filename=u['avatar_path']) if u['avatar_path'] else url_for('static', filename='img/piply-icon.png') }}" alt="">
+      <div><b>{{ u['display_name'] or u['username'] }}</b></div>
+      <div class="muted" style="font-size:12px">@{{ u['username'] }}</div>
+    </a>
+  {% endfor %}
+  </div>
+{% else %}
+  <div class="empty-state"><p>Napiš jméno nebo přezdívku tradera, kterého hledáš.</p></div>
+{% endif %}
+{% endblock %}

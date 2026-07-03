@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block title %}Úprava profilu – Piply{% endblock %}
+{% block content %}
+<div class="page-header"><h1>Úprava profilu</h1></div>
+
+{% if request.args.get('first_time') %}
+<div class="card" style="border-color: var(--accent)">
+  <p style="margin:0">👋 Vítej v Piply! Doplň si profil a mrkni na nastavení soukromí zpráv níže.</p>
+</div>
+{% endif %}
+
+<div class="card">
+  <form method="post" enctype="multipart/form-data">
+    <div style="display:flex; gap:16px; align-items:center; margin-bottom:16px">
+      <div class="upload-zone upload-zone-round" data-upload-zone>
+        <input type="file" name="avatar" accept="image/*">
+        <div class="upload-empty"{% if current_user['avatar_path'] %} style="display:none"{% endif %}>
+          <svg viewBox="0 0 24 24"><path d="M12 16V4M12 4l-4 4M12 4l4 4M4 20h16"/></svg>
+          nahrát
+        </div>
+        <div class="upload-preview"{% if not current_user['avatar_path'] %} style="display:none"{% endif %}>
+          <img class="upload-preview-img" src="{{ url_for('static', filename=current_user['avatar_path']) if current_user['avatar_path'] else '' }}" alt="">
+          <div class="upload-preview-overlay">Změnit fotku</div>
+        </div>
+      </div>
+      <div class="muted" style="font-size:13px">Klikni nebo přetáhni obrázek pro nastavení profilové fotky.</div>
+    </div>
+
+    <div class="field">
+      <label>Zobrazované jméno</label>
+      <input type="text" name="display_name" value="{{ current_user['display_name'] or '' }}">
+    </div>
+    <div class="field">
+      <label>O mně</label>
+      <textarea name="bio" maxlength="500" placeholder="Pár slov o tvém tradingu…">{{ current_user['bio'] or '' }}</textarea>
+    </div>
+    <div class="field">
+      <label>Počáteční kapitál (pro equity křivku ve statistikách)</label>
+      <input type="text" name="starting_capital" value="{{ current_user['starting_capital'] }}">
+    </div>
+    <button type="submit" class="btn">Uložit profil</button>
+  </form>
+</div>
+
+<div class="card">
+  <div class="card-title">Soukromí a notifikace</div>
+  <form method="post" action="{{ url_for('profile.update_privacy') }}">
+    <div class="field">
+      <label>Kdo mi může psát soukromé zprávy</label>
+      <select name="messages_privacy">
+        <option value="everyone" {{ 'selected' if settings and settings['messages_privacy']=='everyone' }}>Kdokoliv</option>
+        <option value="friends" {{ 'selected' if not settings or settings['messages_privacy']=='friends' }}>Jen přátelé</option>
+        <option value="nobody" {{ 'selected' if settings and settings['messages_privacy']=='nobody' }}>Nikdo (zprávy vypnuty)</option>
+      </select>
+    </div>
+    <div class="field" style="display:flex; align-items:center; gap:8px">
+      <input type="checkbox" name="notify_messages" id="nm" style="width:auto" {{ 'checked' if not settings or settings['notify_messages'] }}>
+      <label for="nm" style="margin:0">Upozorňovat na nové zprávy</label>
+    </div>
+    <div class="field" style="display:flex; align-items:center; gap:8px">
+      <input type="checkbox" name="notify_social" id="ns" style="width:auto" {{ 'checked' if not settings or settings['notify_social'] }}>
+      <label for="ns" style="margin:0">Upozorňovat na lajky, komentáře a žádosti o přátelství</label>
+    </div>
+    <button type="submit" class="btn btn-secondary">Uložit nastavení</button>
+  </form>
+</div>
+{% endblock %}

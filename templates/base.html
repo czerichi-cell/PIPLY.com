@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{% block title %}Piply{% endblock %}</title>
+<link rel="icon" type="image/png" href="{{ url_for('static', filename='img/favicon-64.png') }}">
+<link rel="apple-touch-icon" href="{{ url_for('static', filename='img/favicon-180.png') }}">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+{% block head %}{% endblock %}
+</head>
+<body class="{{ 'has-shell' if current_user else 'no-shell' }}">
+
+{% if current_user %}
+<div class="shell">
+  <aside class="sidebar">
+    <a href="{{ url_for('social.feed') }}" class="brand">
+      <img class="brand-logo" src="{{ url_for('static', filename='img/piply-white-transparent-cropped.png') }}" alt="Piply">
+    </a>
+
+    <nav class="nav">
+      <a href="{{ url_for('social.feed') }}" class="nav-item {{ 'active' if request.endpoint == 'social.feed' }}">
+        <svg viewBox="0 0 24 24"><path d="M3 12l9-9 9 9M5 10v10h14V10"/></svg> Feed
+      </a>
+      <a href="{{ url_for('journal.list_trades') }}" class="nav-item {{ 'active' if request.endpoint and request.endpoint.startswith('journal.') and 'week' not in request.endpoint }}">
+        <svg viewBox="0 0 24 24"><path d="M4 4h16v16H4zM8 2v4M16 2v4M4 10h16"/></svg> Deník
+      </a>
+      <a href="{{ url_for('journal.weeks') }}" class="nav-item {{ 'active' if request.endpoint and 'week' in request.endpoint }}">
+        <svg viewBox="0 0 24 24"><path d="M3 3v18h18M7 15l4-4 3 3 5-6"/></svg> Týdenní shrnutí
+      </a>
+      <a href="{{ url_for('stats.dashboard') }}" class="nav-item {{ 'active' if request.endpoint == 'stats.dashboard' }}">
+        <svg viewBox="0 0 24 24"><path d="M4 20V10M12 20V4M20 20v-7"/></svg> Statistiky
+      </a>
+      <a href="{{ url_for('social.friends_list') }}" class="nav-item {{ 'active' if request.endpoint and request.endpoint.startswith('social.friends') }}">
+        <svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><path d="M2 20c0-4 3-6 7-6s7 2 7 6M16 11c2 0 4 1.5 4 5"/></svg> Přátelé
+      </a>
+      <a href="{{ url_for('messages_bp.inbox') }}" class="nav-item {{ 'active' if request.endpoint and request.endpoint.startswith('messages_bp.') }}">
+        <svg viewBox="0 0 24 24"><path d="M4 4h16v13H7l-3 3z"/></svg> Zprávy
+        {% if msg_count %}
+          <span class="badge" id="msg-badge">{{ msg_count }}</span>
+        {% else %}
+          <span class="badge" id="msg-badge" style="display:none"></span>
+        {% endif %}
+      </a>
+      <a href="{{ url_for('notifications.list_notifications') }}" class="nav-item {{ 'active' if request.endpoint == 'notifications.list_notifications' }}">
+        <svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 00-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.7 21a2 2 0 01-3.4 0"/></svg> Notifikace
+        {% if notif_count %}
+          <span class="badge" id="notif-badge">{{ notif_count }}</span>
+        {% else %}
+          <span class="badge" id="notif-badge" style="display:none"></span>
+        {% endif %}
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <a href="{{ url_for('profile.view_profile', username=current_user['username']) }}" class="user-chip">
+        <img class="avatar avatar-sm" src="{{ url_for('static', filename=current_user['avatar_path']) if current_user['avatar_path'] else url_for('static', filename='img/piply-icon.png') }}" alt="">
+        <span>{{ current_user['display_name'] or current_user['username'] }}</span>
+      </a>
+      <a href="{{ url_for('auth.logout') }}" class="logout-link" title="Odhlásit">
+        <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/></svg>
+      </a>
+    </div>
+  </aside>
+
+  <main class="main">
+    <form class="topbar-search" action="{{ url_for('profile.search_users') }}" method="get">
+      <input type="text" name="q" placeholder="Hledat tradery…" value="{{ request.args.get('q','') }}">
+    </form>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="flash-stack">
+        {% for category, message in messages %}
+          <div class="flash flash-{{ category }}">{{ message }}</div>
+        {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    {% block content %}{% endblock %}
+  </main>
+</div>
+{% else %}
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div class="flash-stack flash-stack-center">
+      {% for category, message in messages %}
+        <div class="flash flash-{{ category }}">{{ message }}</div>
+      {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+  {% block auth_content %}{% endblock %}
+{% endif %}
+
+<div class="modal-overlay" id="confirm-modal" style="display:none">
+  <div class="modal-box">
+    <div class="modal-title" id="confirm-modal-title">Opravdu?</div>
+    <div class="modal-actions">
+      <button type="button" class="btn btn-ghost" id="confirm-modal-cancel">Zrušit</button>
+      <button type="button" class="btn btn-danger" id="confirm-modal-ok">Potvrdit</button>
+    </div>
+  </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/app.js') }}"></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

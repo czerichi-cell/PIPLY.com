@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block title %}Deník – Piply{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1>Obchodní deník</h1>
+  <div style="display:flex; gap:8px">
+    <a href="{{ url_for('journal.import_trades') }}" class="btn btn-secondary btn-sm">Import z MT4 / CSV</a>
+    <a href="{{ url_for('journal.new_trade') }}" class="btn btn-sm">+ Nový obchod</a>
+  </div>
+</div>
+
+<form class="filters-bar" method="get">
+  <div class="field">
+    <label>Měnový pár</label>
+    <select name="pair" onchange="this.form.submit()">
+      <option value="">Všechny</option>
+      {% for p in pairs %}
+        <option value="{{ p['pair'] }}" {{ 'selected' if filter_pair == p['pair'] }}>{{ p['pair'] }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="field">
+    <label>Emoce</label>
+    <select name="emotion" onchange="this.form.submit()">
+      <option value="">Všechny</option>
+      {% for e in emotions %}
+        <option value="{{ e }}" {{ 'selected' if filter_emotion == e }}>{{ e }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  {% if filter_pair or filter_emotion %}
+    <a href="{{ url_for('journal.list_trades') }}" class="btn btn-ghost btn-sm">Zrušit filtr</a>
+  {% endif %}
+</form>
+
+{% if trades %}
+<div class="card">
+  <div class="table-wrap">
+  <table>
+    <tr>
+      <th>Datum</th><th>Pár</th><th>Směr</th><th>Lot</th><th>P/L</th><th>RRR</th><th>Emoce</th><th></th>
+    </tr>
+    {% for t in trades %}
+    <tr>
+      <td class="muted">{{ (t['closed_at'] or t['opened_at'] or t['created_at'])|dt }}</td>
+      <td><b>{{ t['pair'] }}</b> {% if t['source']=='mt4' %}<span class="pill" style="margin-left:4px">MT4</span>{% endif %}</td>
+      <td><span class="pill {{ 'pill-green' if t['direction']=='buy' else 'pill-red' }}">{{ 'BUY' if t['direction']=='buy' else 'SELL' }}</span></td>
+      <td class="mono">{{ t['lot_size'] or '—' }}</td>
+      <td class="mono {{ 'value-pos' if t['profit_loss']>=0 else 'value-neg' }}">{{ "%.2f"|format(t['profit_loss']) }}</td>
+      <td class="mono">{{ t['rr_ratio'] or '—' }}</td>
+      <td>{% if t['emotion'] %}<span class="emotion-tag">{{ t['emotion'] }}</span>{% endif %}</td>
+      <td style="white-space:nowrap">
+        <a href="{{ url_for('journal.edit_trade', trade_id=t['id']) }}" class="btn btn-ghost btn-sm">Upravit</a>
+        <form method="post" action="{{ url_for('journal.delete_trade', trade_id=t['id']) }}" style="display:inline" onsubmit="return confirm('Smazat obchod?');">
+          <button type="submit" class="btn btn-ghost btn-sm">Smazat</button>
+        </form>
+      </td>
+    </tr>
+    {% endfor %}
+  </table>
+  </div>
+</div>
+{% else %}
+<div class="empty-state">
+  <p>Zatím žádné obchody. <a href="{{ url_for('journal.new_trade') }}">Přidej první</a> nebo naimportuj historii z MT4.</p>
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+{% block title %}Statistiky – Piply{% endblock %}
+{% block content %}
+<div class="page-header"><h1>Statistiky</h1></div>
+
+{% if not has_data %}
+<div class="empty-state">
+  <p>Zatím nemáš žádné obchody v deníku. <a href="{{ url_for('journal.new_trade') }}">Přidej první obchod</a>, ať máš co počítat.</p>
+</div>
+{% else %}
+
+<div class="stat-grid">
+  <div class="stat-tile"><div class="label">Obchodů celkem</div><div class="value">{{ n }}</div></div>
+  <div class="stat-tile"><div class="label">Winrate</div><div class="value">{{ winrate }}%</div></div>
+  <div class="stat-tile"><div class="label">Celkový P/L</div><div class="value {{ 'value-pos' if total_pl>=0 else 'value-neg' }}">{{ "%.2f"|format(total_pl) }}</div></div>
+  <div class="stat-tile"><div class="label">Profit factor</div><div class="value">{{ profit_factor if profit_factor is not none else '—' }}</div></div>
+  <div class="stat-tile"><div class="label">Průměrné RRR</div><div class="value">{{ avg_rr if avg_rr is not none else '—' }}</div></div>
+  <div class="stat-tile"><div class="label">Max drawdown</div><div class="value value-neg">-{{ max_dd }} ({{ max_dd_pct }}%)</div></div>
+  <div class="stat-tile"><div class="label">Průměrný zisk</div><div class="value value-pos">{{ avg_win }}</div></div>
+  <div class="stat-tile"><div class="label">Průměrná ztráta</div><div class="value value-neg">{{ avg_loss }}</div></div>
+</div>
+
+<div class="card">
+  <div class="card-title">Kapitálová křivka</div>
+  <div class="chart-box"><canvas id="equityChart"></canvas></div>
+</div>
+
+<div class="charts-row">
+  <div class="card">
+    <div class="card-title">Výsledek podle měnového páru</div>
+    <div class="chart-box-sm"><canvas id="pairChart"></canvas></div>
+  </div>
+  <div class="card">
+    <div class="card-title">Výhry / prohry / break-even</div>
+    <div class="chart-box-sm"><canvas id="winlossChart"></canvas></div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-title">Rozpad podle páru</div>
+  <div class="table-wrap">
+  <table>
+    <tr><th>Pár</th><th>Počet</th><th>Winrate</th><th>P/L</th></tr>
+    {% for p in pair_stats %}
+    <tr>
+      <td><b>{{ p.pair }}</b></td>
+      <td>{{ p.count }}</td>
+      <td>{{ p.winrate }}%</td>
+      <td class="mono {{ 'value-pos' if p.pl>=0 else 'value-neg' }}">{{ "%.2f"|format(p.pl) }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+  </div>
+</div>
+
+{% if emotion_stats %}
+<div class="card">
+  <div class="card-title">Rozpad podle emoce při obchodu</div>
+  <div class="table-wrap">
+  <table>
+    <tr><th>Emoce</th><th>Počet</th><th>P/L</th></tr>
+    {% for e in emotion_stats %}
+    <tr>
+      <td><span class="emotion-tag">{{ e.emotion }}</span></td>
+      <td>{{ e.count }}</td>
+      <td class="mono {{ 'value-pos' if e.pl>=0 else 'value-neg' }}">{{ "%.2f"|format(e.pl) }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+  </div>
+</div>
+{% endif %}
+
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+{% if has_data %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
+<script>
+const chartData = {{ chart_data|safe }};
+const gridColor = "rgba(255,255,255,0.06)";
+const textColor = "#96968f";
+Chart.defaults.color = textColor;
+Chart.defaults.font.family = "'Inter', system-ui, sans-serif";
+
+new Chart(document.getElementById('equityChart'), {
+  type: 'line',
+  data: {
+    labels: chartData.equity_labels,
+    datasets: [{
+      data: chartData.equity_values,
+      borderColor: '#7ed957',
+      backgroundColor: 'rgba(126,217,87,0.12)',
+      fill: true,
+      tension: 0.25,
+      pointRadius: 0,
+      borderWidth: 2,
+    }]
+  },
+  options: {
+    plugins: { legend: { display: false } },
+    scales: {
+      x: { display: false },
+      y: { grid: { color: gridColor }, ticks: { color: textColor } }
+    }
+  }
+});
+
+new Chart(document.getElementById('pairChart'), {
+  type: 'bar',
+  data: {
+    labels: chartData.pair_labels,
+    datasets: [{
+      data: chartData.pair_values,
+      backgroundColor: chartData.pair_values.map(v => v >= 0 ? '#7ed957' : '#ff4757'),
+      borderRadius: 4,
+    }]
+  },
+  options: {
+    plugins: { legend: { display: false } },
+    scales: {
+      x: { grid: { display: false } },
+      y: { grid: { color: gridColor } }
+    }
+  }
+});
+
+new Chart(document.getElementById('winlossChart'), {
+  type: 'doughnut',
+  data: {
+    labels: ['Výhry', 'Prohry', 'Break-even'],
+    datasets: [{
+      data: chartData.win_loss,
+      backgroundColor: ['#7ed957', '#ff4757', '#4a4a45'],
+      borderColor: '#171717',
+      borderWidth: 2,
+    }]
+  },
+  options: {
+    plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, padding: 14 } } }
+  }
+});
+</script>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% block title %}{{ profile_user['display_name'] or profile_user['username'] }} – Piply{% endblock %}
+{% block content %}
+
+<div class="card">
+  <div style="display:flex; gap:18px; align-items:center; flex-wrap:wrap">
+    <img class="avatar avatar-lg" src="{{ url_for('static', filename=profile_user['avatar_path']) if profile_user['avatar_path'] else url_for('static', filename='img/piply-icon.png') }}" alt="">
+    <div style="flex:1; min-width:200px">
+      <h1 style="font-size:20px">{{ profile_user['display_name'] or profile_user['username'] }}</h1>
+      <div class="muted">@{{ profile_user['username'] }} · {{ friends_count }} přátel</div>
+      {% if profile_user['bio'] %}<p style="margin-top:8px">{{ profile_user['bio'] }}</p>{% endif %}
+    </div>
+    <div style="display:flex; gap:8px; align-self:flex-start">
+      {% if is_me %}
+        <a href="{{ url_for('profile.edit_profile') }}" class="btn btn-secondary btn-sm">Upravit profil</a>
+      {% else %}
+        {% if friend_status == 'accepted' %}
+          <span class="pill pill-green">Přátelé</span>
+          <a href="{{ url_for('messages_bp.thread', username=profile_user['username']) }}" class="btn btn-secondary btn-sm">Napsat zprávu</a>
+          <form method="post" action="{{ url_for('social.remove_friend', friendship_id=friendship_id) }}" data-confirm="Opravdu odebrat {{ profile_user['display_name'] or profile_user['username'] }} z přátel?">
+            <button class="btn btn-ghost btn-sm" type="submit">Odebrat z přátel</button>
+          </form>
+        {% elif friend_status == 'pending' and friend_req_from_me %}
+          <span class="pill">Žádost čeká</span>
+        {% elif friend_status == 'pending' and not friend_req_from_me %}
+          <span class="pill">Poslal(a) ti žádost — viz Přátelé</span>
+        {% elif friend_status == 'blocked' %}
+          <form method="post" action="{{ url_for('social.unblock_user', username=profile_user['username']) }}">
+            <button class="btn btn-ghost btn-sm" type="submit">Odblokovat</button>
+          </form>
+        {% else %}
+          <form method="post" action="{{ url_for('social.send_request', username=profile_user['username']) }}">
+            <button class="btn btn-sm" type="submit">Přidat mezi přátele</button>
+          </form>
+        {% endif %}
+        {% if friend_status != 'blocked' %}
+        <form method="post" action="{{ url_for('social.block_user', username=profile_user['username']) }}" data-confirm="Opravdu chceš zablokovat {{ profile_user['display_name'] or profile_user['username'] }}? Nebude s tebou moct psát ani vidět tvůj profil.">
+          <button class="btn btn-ghost btn-sm" type="submit">Blokovat</button>
+        </form>
+        {% endif %}
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<div class="stat-grid">
+  <div class="stat-tile">
+    <div class="label">Obchodů</div>
+    <div class="value">{{ stats.count }}</div>
+  </div>
+  <div class="stat-tile">
+    <div class="label">Winrate</div>
+    <div class="value">{{ stats.winrate }}%</div>
+  </div>
+  <div class="stat-tile">
+    <div class="label">Celkový P/L</div>
+    <div class="value {{ 'value-pos' if stats.total_pl >= 0 else 'value-neg' }}">{{ "%.2f"|format(stats.total_pl) }}</div>
+  </div>
+</div>
+
+{% if recent_trades %}
+<div class="card">
+  <div class="card-title">Poslední obchody</div>
+  <div class="table-wrap">
+  <table>
+    <tr><th>Pár</th><th>Směr</th><th>P/L</th><th>Datum</th></tr>
+    {% for t in recent_trades %}
+    <tr>
+      <td>{{ t['pair'] }}</td>
+      <td><span class="pill {{ 'pill-green' if t['direction']=='buy' else 'pill-red' }}">{{ 'BUY' if t['direction']=='buy' else 'SELL' }}</span></td>
+      <td class="mono {{ 'value-pos' if t['profit_loss']>=0 else 'value-neg' }}">{{ "%.2f"|format(t['profit_loss']) }}</td>
+      <td class="muted">{{ (t['closed_at'] or t['opened_at'])|dt }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+  </div>
+</div>
+{% endif %}
+
+<h2 style="font-size:16px; margin: 18px 0 10px">Příspěvky</h2>
+{% if posts %}
+  {% for post in posts %}
+    {% include "social/_post.html" %}
+  {% endfor %}
+{% else %}
+  <div class="empty-state"><p>Zatím žádné příspěvky.</p></div>
+{% endif %}
+{% endblock %}

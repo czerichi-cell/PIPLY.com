@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block title %}Týden {{ week_start }} – Piply{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1>Týden {{ week_start.strftime('%d.%m.') }} – {{ week_end.strftime('%d.%m.%Y') }}</h1>
+  <a href="{{ url_for('journal.weeks') }}" class="btn btn-ghost btn-sm">← Zpět na týdny</a>
+</div>
+
+<div class="stat-grid">
+  <div class="stat-tile">
+    <div class="label">Obchodů</div>
+    <div class="value">{{ trades|length }}</div>
+  </div>
+  <div class="stat-tile">
+    <div class="label">Winrate</div>
+    <div class="value">{{ winrate }}%</div>
+  </div>
+  <div class="stat-tile">
+    <div class="label">Výsledek týdne</div>
+    <div class="value {{ 'value-pos' if total_pl >= 0 else 'value-neg' }}">{{ "%.2f"|format(total_pl) }}</div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-title">Obchody tento týden</div>
+  {% if trades %}
+  <div class="table-wrap">
+  <table>
+    <tr><th>Datum</th><th>Pár</th><th>Směr</th><th>P/L</th><th>Emoce</th></tr>
+    {% for t in trades %}
+    <tr>
+      <td class="muted">{{ (t['closed_at'] or t['opened_at'])|dt }}</td>
+      <td><b>{{ t['pair'] }}</b></td>
+      <td><span class="pill {{ 'pill-green' if t['direction']=='buy' else 'pill-red' }}">{{ 'BUY' if t['direction']=='buy' else 'SELL' }}</span></td>
+      <td class="mono {{ 'value-pos' if t['profit_loss']>=0 else 'value-neg' }}">{{ "%.2f"|format(t['profit_loss']) }}</td>
+      <td>{% if t['emotion'] %}<span class="emotion-tag">{{ t['emotion'] }}</span>{% endif %}</td>
+    </tr>
+    {% endfor %}
+  </table>
+  </div>
+  {% else %}
+  <p class="muted">Žádné obchody v tomto týdnu.</p>
+  {% endif %}
+</div>
+
+<div class="card">
+  <div class="card-title">Moje shrnutí týdne</div>
+  <form method="post">
+    <div class="field">
+      <label>Jak se ti tento týden obchodovalo? Co fungovalo, co ne?</label>
+      <textarea name="reflection" placeholder="Zamyšlení nad týdnem…">{{ review['reflection'] if review else '' }}</textarea>
+    </div>
+    <div class="field" style="max-width:200px">
+      <label>Celkové hodnocení týdne (1–5)</label>
+      <select name="rating">
+        <option value="">—</option>
+        {% for r in range(1,6) %}
+          <option value="{{ r }}" {{ 'selected' if review and review['rating']==r }}>{{ r }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <button type="submit" class="btn">Uložit shrnutí</button>
+  </form>
+</div>
+{% endblock %}

@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Upravit obchod' if trade else 'Nový obchod' }} – Piply{% endblock %}
+{% block content %}
+<div class="page-header"><h1>{{ 'Upravit obchod' if trade else 'Nový obchod' }}</h1></div>
+
+<div class="card" style="max-width:640px">
+  <form method="post" enctype="multipart/form-data">
+    <div class="field-row">
+      <div class="field">
+        <label>Měnový pár</label>
+        <input type="text" name="pair" value="{{ trade['pair'] if trade else '' }}" placeholder="EURUSD" required style="text-transform:uppercase">
+      </div>
+      <div class="field">
+        <label>Směr</label>
+        <select name="direction">
+          <option value="buy" {{ 'selected' if trade and trade['direction']=='buy' }}>Buy (nákup)</option>
+          <option value="sell" {{ 'selected' if trade and trade['direction']=='sell' }}>Sell (prodej)</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="field-row-3">
+      <div class="field">
+        <label>Lot size</label>
+        <input type="text" name="lot_size" value="{{ trade['lot_size'] if trade else '' }}">
+      </div>
+      <div class="field">
+        <label>Vstupní cena</label>
+        <input type="text" name="entry_price" value="{{ trade['entry_price'] if trade else '' }}">
+      </div>
+      <div class="field">
+        <label>Výstupní cena</label>
+        <input type="text" name="exit_price" value="{{ trade['exit_price'] if trade else '' }}">
+      </div>
+    </div>
+
+    <div class="field-row-3">
+      <div class="field">
+        <label>Stop Loss</label>
+        <input type="text" name="stop_loss" value="{{ trade['stop_loss'] if trade else '' }}">
+      </div>
+      <div class="field">
+        <label>Take Profit</label>
+        <input type="text" name="take_profit" value="{{ trade['take_profit'] if trade else '' }}">
+      </div>
+      <div class="field">
+        <label>RRR (necháš prázdné, dopočítá se)</label>
+        <input type="text" name="rr_ratio" value="{{ trade['rr_ratio'] if trade else '' }}">
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Výsledek obchodu (P/L, v měně účtu) *</label>
+      <input type="text" name="profit_loss" value="{{ trade['profit_loss'] if trade else '' }}" required>
+    </div>
+
+    <div class="field-row">
+      <div class="field">
+        <label>Otevřeno</label>
+        <input type="datetime-local" name="opened_at" value="{{ trade['opened_at'][:16] if trade and trade['opened_at'] else '' }}">
+      </div>
+      <div class="field">
+        <label>Zavřeno</label>
+        <input type="datetime-local" name="closed_at" value="{{ trade['closed_at'][:16] if trade and trade['closed_at'] else '' }}">
+      </div>
+    </div>
+
+    <div class="field-row">
+      <div class="field">
+        <label>Emoce při obchodu</label>
+        <select name="emotion">
+          <option value="">—</option>
+          {% for e in emotions %}
+            <option value="{{ e }}" {{ 'selected' if trade and trade['emotion']==e }}>{{ e }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="field">
+        <label>Hodnocení obchodu (1–5)</label>
+        <select name="rating">
+          <option value="">—</option>
+          {% for r in range(1,6) %}
+            <option value="{{ r }}" {{ 'selected' if trade and trade['rating']==r }}>{{ r }}</option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Poznámky / myšlenky</label>
+      <textarea name="notes" placeholder="Proč jsi vstoupil, co se dělo, co bys udělal jinak…">{{ trade['notes'] if trade else '' }}</textarea>
+    </div>
+
+    <div class="field">
+      <label>Screenshot grafu (volitelné)</label>
+      <div class="upload-zone" data-upload-zone>
+        <input type="file" name="screenshot" accept="image/*">
+        <div class="upload-empty" {% if trade and trade['screenshot_path'] %}style="display:none"{% endif %}>
+          <svg viewBox="0 0 24 24"><path d="M4 16l4-5 3 3 5-6 4 5M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z"/></svg>
+          Přetáhni sem obrázek nebo <span class="upload-browse">vyber soubor</span>
+          <div class="upload-hint">PNG, JPG…</div>
+        </div>
+        <div class="upload-preview" {% if not (trade and trade['screenshot_path']) %}style="display:none"{% endif %}>
+          {% if trade and trade['screenshot_path'] %}
+          <img class="upload-preview-img" src="{{ url_for('static', filename=trade['screenshot_path']) }}" alt="">
+          {% else %}
+          <img class="upload-preview-img" src="" alt="">
+          {% endif %}
+          <div class="upload-preview-overlay">Změnit screenshot</div>
+        </div>
+      </div>
+    </div>
+
+    <button type="submit" class="btn">{{ 'Uložit změny' if trade else 'Přidat obchod' }}</button>
+    <a href="{{ url_for('journal.list_trades') }}" class="btn btn-ghost">Zrušit</a>
+  </form>
+</div>
+{% endblock %}

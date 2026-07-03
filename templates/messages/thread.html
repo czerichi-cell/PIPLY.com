@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% block title %}{{ other['display_name'] or other['username'] }} – Zprávy – Piply{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1>
+    <a href="{{ url_for('profile.view_profile', username=other['username']) }}" style="display:flex; align-items:center; gap:10px">
+      <img class="avatar avatar-sm" src="{{ url_for('static', filename=other['avatar_path']) if other['avatar_path'] else url_for('static', filename='img/piply-icon.png') }}" alt="">
+      {{ other['display_name'] or other['username'] }}
+    </a>
+  </h1>
+  <a href="{{ url_for('messages_bp.inbox') }}" class="btn btn-ghost btn-sm">← Zprávy</a>
+</div>
+
+<div class="card chat-window" id="chat-window" data-username="{{ other['username'] }}" data-last-id="{{ messages[-1]['id'] if messages else 0 }}" data-me="{{ current_user['id'] }}">
+  <div class="chat-messages" id="chat-messages">
+    {% for m in messages %}
+      <div class="bubble {{ 'bubble-mine' if m['sender_id'] == current_user['id'] else 'bubble-theirs' }}">
+        {% if m['image_path'] %}<img class="bubble-image" src="{{ url_for('static', filename=m['image_path']) }}" alt="">{% endif %}
+        {% if m['gif_url'] %}<img class="bubble-gif" src="{{ m['gif_url'] }}" alt="">{% endif %}
+        {% if m['content'] %}{{ m['content'] }}{% endif %}
+        <div class="bubble-time">{{ m['created_at']|dt('%d.%m. %H:%M') }}</div>
+      </div>
+    {% endfor %}
+  </div>
+
+  {% if can_message %}
+  <div class="chat-attach-preview" id="chat-attach-preview">
+    <img id="chat-attach-preview-img" src="" alt="">
+    <span>Obrázek připraven k odeslání</span>
+    <button type="button" class="chat-attach-remove" id="chat-attach-remove" title="Odebrat">&times;</button>
+  </div>
+  <div id="chat-error" class="muted" style="display:none; color:var(--red); font-size:12.5px; margin-bottom:6px"></div>
+
+  <form class="chat-input-row" id="chat-form">
+    <div class="chat-tools">
+      <button type="button" class="chat-tool-btn" id="chat-attach-btn" title="Přidat obrázek">
+        <svg viewBox="0 0 24 24"><path d="M21.44 11.05l-9.19 9.19a5 5 0 01-7.07-7.07l9.19-9.19a3 3 0 014.24 4.24l-9.2 9.19a1 1 0 01-1.41-1.41l8.49-8.48"/></svg>
+      </button>
+      <input type="file" id="chat-image-input" accept="image/*" hidden>
+
+      <div style="position:relative">
+        <button type="button" class="chat-tool-btn" id="emoji-btn" title="Emoji" style="font-size:16px">🙂</button>
+        <div class="picker-popover" id="emoji-picker">
+          <div class="picker-grid" id="emoji-grid"></div>
+        </div>
+      </div>
+
+      {% if giphy_enabled %}
+      <div style="position:relative">
+        <button type="button" class="chat-tool-btn" id="gif-btn" title="GIF" style="font-size:11px; font-weight:700">GIF</button>
+        <div class="picker-popover" id="gif-picker">
+          <div class="picker-search"><input type="text" id="gif-search-input" placeholder="Hledat GIF…"></div>
+          <div class="picker-grid picker-grid-gif" id="gif-results"></div>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+    <input type="text" name="content" id="chat-input" placeholder="Napiš zprávu…" autocomplete="off" maxlength="2000">
+    <button type="submit" class="btn">Odeslat</button>
+  </form>
+  {% else %}
+  <p class="muted" style="padding-top:10px">Tento uživatel nepřijímá zprávy od cizích lidí.</p>
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  window.PIPLY_CHAT_URL = "{{ url_for('messages_bp.thread', username=other['username']) }}";
+  window.PIPLY_POLL_URL_BASE = "{{ url_for('messages_bp.poll', username=other['username']) }}";
+  window.PIPLY_GIF_SEARCH_URL = "{{ url_for('messages_bp.gif_search') }}";
+  window.PIPLY_GIPHY_ENABLED = "{{ giphy_enabled|tojson }}";
+</script>
+{% endblock %}

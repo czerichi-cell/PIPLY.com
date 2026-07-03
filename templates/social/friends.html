@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% block title %}Přátelé – Piply{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1>Přátelé</h1>
+  <form action="{{ url_for('profile.search_users') }}" method="get">
+    <input type="text" name="q" placeholder="Najít tradera podle jména…" style="width:220px">
+  </form>
+</div>
+
+{% if incoming %}
+<div class="card">
+  <div class="card-title">Žádosti o přátelství ({{ incoming|length }})</div>
+  {% for u in incoming %}
+    <div class="person-row">
+      <img class="avatar avatar-md" src="{{ url_for('static', filename=u['avatar_path']) if u['avatar_path'] else url_for('static', filename='img/piply-icon.png') }}" alt="">
+      <div class="info">
+        <a href="{{ url_for('profile.view_profile', username=u['username']) }}"><b>{{ u['display_name'] or u['username'] }}</b></a>
+        <div class="muted" style="font-size:12.5px">@{{ u['username'] }}</div>
+      </div>
+      <div class="actions">
+        <form method="post" action="{{ url_for('social.accept_request', friendship_id=u['friendship_id']) }}">
+          <button class="btn btn-sm" type="submit">Přijmout</button>
+        </form>
+        <form method="post" action="{{ url_for('social.decline_request', friendship_id=u['friendship_id']) }}">
+          <button class="btn btn-ghost btn-sm" type="submit">Odmítnout</button>
+        </form>
+      </div>
+    </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+{% if outgoing %}
+<div class="card">
+  <div class="card-title">Odeslané žádosti ({{ outgoing|length }})</div>
+  {% for u in outgoing %}
+    <div class="person-row">
+      <img class="avatar avatar-md" src="{{ url_for('static', filename=u['avatar_path']) if u['avatar_path'] else url_for('static', filename='img/piply-icon.png') }}" alt="">
+      <div class="info">
+        <a href="{{ url_for('profile.view_profile', username=u['username']) }}"><b>{{ u['display_name'] or u['username'] }}</b></a>
+        <div class="muted" style="font-size:12.5px">@{{ u['username'] }} · čeká na potvrzení</div>
+      </div>
+      <div class="actions">
+        <form method="post" action="{{ url_for('social.decline_request', friendship_id=u['friendship_id']) }}">
+          <button class="btn btn-ghost btn-sm" type="submit">Zrušit</button>
+        </form>
+      </div>
+    </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<div class="card">
+  <div class="card-title">Tvoji přátelé ({{ accepted|length }})</div>
+  {% if accepted %}
+    <div class="people-grid">
+    {% for u in accepted %}
+      <div class="person-card">
+        <a href="{{ url_for('profile.view_profile', username=u['username']) }}" style="display:block">
+          <img class="avatar avatar-md" src="{{ url_for('static', filename=u['avatar_path']) if u['avatar_path'] else url_for('static', filename='img/piply-icon.png') }}" alt="">
+          <div><b>{{ u['display_name'] or u['username'] }}</b></div>
+          <div class="muted" style="font-size:12px">@{{ u['username'] }}</div>
+        </a>
+        <form method="post" action="{{ url_for('social.remove_friend', friendship_id=u['friendship_id']) }}" data-confirm="Opravdu odebrat {{ u['display_name'] or u['username'] }} z přátel?" style="margin-top:8px">
+          <button class="btn btn-ghost btn-sm" type="submit" style="width:100%">Odebrat</button>
+        </form>
+      </div>
+    {% endfor %}
+    </div>
+  {% else %}
+    <div class="empty-state"><p>Zatím žádní přátelé. Zkus někoho <a href="{{ url_for('profile.search_users') }}">vyhledat</a>.</p></div>
+  {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}Týdenní shrnutí – Piply{% endblock %}
+{% block content %}
+<div class="page-header"><h1>Týdenní shrnutí</h1></div>
+
+{% if weeks %}
+<div class="week-grid">
+  {% for w in weeks %}
+  <a class="week-card" href="{{ url_for('journal.week_detail', week_start=w.week_start) }}">
+    <div class="range">{{ w.week_start }} – {{ w.week_end }}</div>
+    <div class="mono {{ 'value-pos' if w.pl >= 0 else 'value-neg' }}" style="font-size:18px; font-weight:700">{{ "%.2f"|format(w.pl) }}</div>
+    <div class="muted" style="font-size:12.5px; margin-top:4px">{{ w.count }} obchodů</div>
+    {% if w.reviewed %}<div class="reviewed-badge" style="margin-top:6px">✓ zapsáno shrnutí</div>{% endif %}
+  </a>
+  {% endfor %}
+</div>
+{% else %}
+<div class="empty-state"><p>Zatím nemáš žádné obchody, ze kterých by šlo udělat týdenní přehled.</p></div>
+{% endif %}
+{% endblock %}
