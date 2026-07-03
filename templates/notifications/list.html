@@ -1,7 +1,15 @@
 {% extends "base.html" %}
 {% block title %}Notifikace – Piply{% endblock %}
 {% block content %}
-<div class="page-header"><h1>Notifikace</h1></div>
+<div class="page-header">
+  <h1>Notifikace</h1>
+  {% if notes %}
+  <form method="post" action="{{ url_for('notifications.delete_all_notifications') }}"
+        data-confirm="{% if unread_count %}Máš mezi nimi {{ unread_count }} nepřečtených. Opravdu smazat všech {{ notes|length }} notifikací?{% else %}Opravdu smazat všech {{ notes|length }} notifikací?{% endif %}">
+    <button type="submit" class="btn btn-ghost btn-sm">Smazat všechny</button>
+  </form>
+  {% endif %}
+</div>
 
 <div class="card">
 {% if notes %}
@@ -18,7 +26,7 @@
           <svg viewBox="0 0 24 24"><path d="M4 4h16v13H7l-3 3z"/></svg>
         {% endif %}
       </div>
-      <div>
+      <div style="flex:1; min-width:0">
         <div class="notif-text">
           {% if note['actor_username'] %}
             <a href="{{ url_for('profile.view_profile', username=note['actor_username']) }}"><b>{{ note['actor_display_name'] or note['actor_username'] }}</b></a>
@@ -32,6 +40,12 @@
         </div>
         <div class="notif-time">{{ note['created_at']|dt }}</div>
       </div>
+      <form method="post" action="{{ url_for('notifications.delete_notification', notif_id=note['id']) }}"
+            data-confirm="{% if not note['is_read'] %}Tahle notifikace je ještě nepřečtená. Opravdu ji smazat?{% else %}Smazat tuto notifikaci?{% endif %}">
+        <button type="submit" class="chat-tool-btn" title="Smazat" style="border:none; width:28px; height:28px">
+          <svg viewBox="0 0 24 24" style="width:14px;height:14px"><path d="M4 6h16M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2m2 0v14a1 1 0 01-1 1H8a1 1 0 01-1-1V6h10z"/></svg>
+        </button>
+      </form>
     </div>
   {% endfor %}
 {% else %}

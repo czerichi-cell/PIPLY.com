@@ -69,6 +69,6 @@
   window.PIPLY_CHAT_URL = "{{ url_for('messages_bp.thread', username=other['username']) }}";
   window.PIPLY_POLL_URL_BASE = "{{ url_for('messages_bp.poll', username=other['username']) }}";
   window.PIPLY_GIF_SEARCH_URL = "{{ url_for('messages_bp.gif_search') }}";
-  window.PIPLY_GIPHY_ENABLED = "{{ giphy_enabled|tojson }}";
+  window.PIPLY_GIPHY_ENABLED = document.getElementById('chat-window').dataset.giphyEnabled === 'true';
 </script>
 {% endblock %}

@@ -38,19 +38,11 @@
       </a>
       <a href="{{ url_for('messages_bp.inbox') }}" class="nav-item {{ 'active' if request.endpoint and request.endpoint.startswith('messages_bp.') }}">
         <svg viewBox="0 0 24 24"><path d="M4 4h16v13H7l-3 3z"/></svg> Zprávy
-        {% if msg_count %}
-          <span class="badge" id="msg-badge">{{ msg_count }}</span>
-        {% else %}
-          <span class="badge" id="msg-badge" style="display:none"></span>
-        {% endif %}
+        <span class="badge" id="msg-badge" {% if not msg_count %}hidden{% endif %}>{{ msg_count }}</span>
       </a>
       <a href="{{ url_for('notifications.list_notifications') }}" class="nav-item {{ 'active' if request.endpoint == 'notifications.list_notifications' }}">
         <svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 00-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.7 21a2 2 0 01-3.4 0"/></svg> Notifikace
-        {% if notif_count %}
-          <span class="badge" id="notif-badge">{{ notif_count }}</span>
-        {% else %}
-          <span class="badge" id="notif-badge" style="display:none"></span>
-        {% endif %}
+        <span class="badge" id="notif-badge" {% if not notif_count %}hidden{% endif %}>{{ notif_count }}</span>
       </a>
     </nav>
 

@@ -36,6 +36,9 @@
   </form>
 </div>
 
+<div id="feed-new-banner" class="card" style="display:none; text-align:center; cursor:pointer; border-color:var(--accent); color:var(--accent); font-weight:600; padding:12px"></div>
+
+<div id="feed-posts" data-latest-id="{{ latest_id }}">
 {% if posts %}
   {% for post in posts %}
     {% include "social/_post.html" %}
@@ -45,4 +48,11 @@
     <p>Feed je zatím prázdný. Přidej první příspěvek nebo si <a href="{{ url_for('social.friends_list') }}">najdi kamarády</a>.</p>
   </div>
 {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  window.PIPLY_FEED_POLL_URL = "{{ url_for('social.feed_poll') }}";
+</script>
 {% endblock %}

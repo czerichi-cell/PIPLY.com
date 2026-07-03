@@ -1,30 +1,44 @@
 {% extends "base.html" %}
 {% block title %}Import obchodů – Piply{% endblock %}
 {% block content %}
-<div class="page-header"><h1>Import z MT4 / CSV</h1></div>
+<div class="page-header"><h1>Import obchodů z MT4</h1></div>
 
 <div class="card" style="max-width:640px">
-  <form method="post" enctype="multipart/form-data">
-    <div class="upload-drop" style="margin-bottom:14px">
-      <input type="file" name="csv_file" accept=".csv,.txt" required style="border:none">
+  <div class="card-title">1. Zkopíruj obchody přímo z MT4</div>
+  <p class="muted" style="margin-bottom:14px">
+    Žádný export, žádný Excel. V MetaTraderu 4 otevři záložku <b>Historie účtu</b>
+    (dole v Terminálu), klikni do tabulky s obchody, stiskni <b>Ctrl+A</b> (vybere
+    všechny řádky) a pak <b>Ctrl+C</b> (zkopíruje je). Pak se vrať sem a vlož je
+    (<b>Ctrl+V</b>) do pole níže.
+  </p>
+
+  <form method="post">
+    <div class="field">
+      <label>Vložená data z MT4</label>
+      <textarea name="paste_data" rows="10" placeholder="Sem vlož zkopírované řádky (Ctrl+V)…" style="font-family: var(--font-mono); font-size:12.5px"></textarea>
     </div>
     <button type="submit" class="btn">Naimportovat</button>
   </form>
 </div>
 
 <div class="card" style="max-width:640px">
-  <div class="card-title">Jak na export z MT4</div>
-  <p class="muted">V MetaTraderu 4 otevři záložku <b>Historie účtu</b>, pravým tlačítkem vyber <b>Uložit jako sestavu</b> (HTML), otevři soubor v Excelu / Google Sheets a ulož jako <b>CSV</b>. Nebo obchody zapisuj rovnou do vlastního CSV podle vzoru níže.</p>
+  <div class="card-title">Nebo nahraj CSV soubor</div>
+  <p class="muted" style="margin-bottom:12px">Pro obchody z jiného brokera nebo nástroje, kde máš rovnou CSV export.</p>
+  <form method="post" enctype="multipart/form-data">
+    <div class="upload-drop" style="margin-bottom:14px">
+      <input type="file" name="csv_file" accept=".csv,.txt" style="border:none">
+    </div>
+    <button type="submit" class="btn btn-secondary">Naimportovat CSV</button>
+  </form>
   <div class="divider"></div>
   <p class="muted" style="margin-bottom:6px">Rozpoznávané sloupce (stačí některé, nezáleží na pořadí ani velikosti písmen):</p>
   <div class="table-wrap">
   <table>
     <tr><th>Symbol</th><th>Type</th><th>Size</th><th>Open Price</th><th>Close Price</th><th>S/L</th><th>T/P</th><th>Open Time</th><th>Close Time</th><th>Profit</th></tr>
     <tr class="mono">
-      <td>EURUSD</td><td>buy</td><td>0.10</td><td>1.0850</td><td>1.0910</td><td>1.0800</td><td>1.0950</td><td>2025-01-10 09:15</td><td>2025-01-10 14:30</td><td>60.00</td>
+      <td>EURUSD</td><td>buy</td><td>0.10</td><td>1.0850</td><td>1.0910</td><td>1.0800</td><td>1.0950</td><td>2026-01-10 09:15</td><td>2026-01-10 14:30</td><td>60.00</td>
     </tr>
   </table>
   </div>
-  <p class="muted" style="margin-top:10px">Povinné jsou jen sloupce <b>Symbol</b> a <b>Profit</b> — zbytek se doplní, pokud existuje.</p>
 </div>
 {% endblock %}

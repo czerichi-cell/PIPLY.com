@@ -5,20 +5,6 @@ trader_hub.db
 static/uploads/avatars/*
 static/uploads/screenshots/*
 static/uploads/posts/*
-static/uploads/chat/*
 !static/uploads/avatars/.gitkeep
 !static/uploads/screenshots/.gitkeep
 !static/uploads/posts/.gitkeep
-!static/uploads/chat/.gitkeep
- 
-# env / secrets
-.env
-.flaskenv
- 
-# OS / editor smeti
-.DS_Store
-Thumbs.db
-.idea/
-.vscode/
-*.log
- 

@@ -27,7 +27,25 @@ def init_db():
     conn = sqlite3.connect(str(DB_PATH))
     conn.executescript(SCHEMA_PATH.read_text(encoding="utf-8"))
     conn.commit()
+    _migrate(conn)
     conn.close()
+
+
+def _migrate(conn):
+    """Dopl\u0148uje nov\u00e9 sloupce do existuj\u00edc\u00edch tabulek (bezpe\u010dn\u00e9 opakovan\u00e9 vol\u00e1n\u00ed,
+    nema\u017e\u00e1 \u017e\u00e1dn\u00e1 stars\u00ed data)."""
+    wanted_columns = {
+        "messages": [
+            ("image_path", "TEXT"),
+            ("gif_url", "TEXT"),
+        ],
+    }
+    for table, columns in wanted_columns.items():
+        existing = {row[1] for row in conn.execute(f"PRAGMA table_info({table})")}
+        for name, coltype in columns:
+            if name not in existing:
+                conn.execute(f"ALTER TABLE {table} ADD COLUMN {name} {coltype}")
+    conn.commit()
 
 
 def query_all(sql, params=()):

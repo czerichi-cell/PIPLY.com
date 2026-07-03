@@ -9,26 +9,57 @@ from helpers import (
 bp = Blueprint("social", __name__)
 
 
+def _visible_posts_sql(me, fids, after_id=None):
+    placeholders = ",".join("?" * len(fids))
+    sql = f"""SELECT posts.*, users.username, users.display_name, users.avatar_path,
+                   (SELECT COUNT(*) FROM likes WHERE likes.post_id = posts.id) AS like_count,
+                   (SELECT COUNT(*) FROM comments WHERE comments.post_id = posts.id) AS comment_count,
+                   (SELECT COUNT(*) FROM likes WHERE likes.post_id = posts.id AND likes.user_id = ?) AS liked_by_me
+            FROM posts JOIN users ON users.id = posts.user_id
+            WHERE (
+                (posts.user_id IN ({placeholders}) AND posts.visibility IN ('public','friends'))
+                OR posts.visibility = 'public'
+                OR (posts.user_id = ? AND posts.visibility = 'only_me')
+            )"""
+    params = [me] + fids + [me]
+    if after_id is not None:
+        sql += " AND posts.id > ?"
+        params.append(after_id)
+    sql += " GROUP BY posts.id ORDER BY posts.created_at DESC LIMIT 50"
+    return sql, params
+
+
 @bp.route("/feed")
 @login_required
 def feed():
     me = g.user["id"]
     fids = friend_ids(me) + [me]
-    placeholders = ",".join("?" * len(fids))
-    posts = query_all(
-        f"""SELECT posts.*, users.username, users.display_name, users.avatar_path,
-                   (SELECT COUNT(*) FROM likes WHERE likes.post_id = posts.id) AS like_count,
-                   (SELECT COUNT(*) FROM comments WHERE comments.post_id = posts.id) AS comment_count,
-                   (SELECT COUNT(*) FROM likes WHERE likes.post_id = posts.id AND likes.user_id = ?) AS liked_by_me
-            FROM posts JOIN users ON users.id = posts.user_id
-            WHERE (posts.user_id IN ({placeholders}) AND posts.visibility IN ('public','friends'))
-               OR (posts.visibility='public')
-            GROUP BY posts.id
-            ORDER BY posts.created_at DESC LIMIT 50""",
-        [me] + fids,
-    )
+    sql, params = _visible_posts_sql(me, fids)
+    posts = query_all(sql, params)
     post_comments = comments_for_posts([p["id"] for p in posts])
-    return render_template("social/feed.html", posts=posts, post_comments=post_comments)
+    latest_id = posts[0]["id"] if posts else 0
+    return render_template("social/feed.html", posts=posts, post_comments=post_comments, latest_id=latest_id)
+
+
+@bp.route("/feed/poll")
+@login_required
+def feed_poll():
+    me = g.user["id"]
+    after_id = request.args.get("after_id", 0, type=int)
+    fids = friend_ids(me) + [me]
+    sql, params = _visible_posts_sql(me, fids, after_id=after_id)
+    posts = query_all(sql, params)
+    if not posts:
+        return jsonify({"count": 0, "html": "", "latest_id": after_id})
+
+    post_comments = comments_for_posts([p["id"] for p in posts])
+    # posts jsou serazene od nejnovejsiho -> pro spravne poradi pri vlozeni na
+    # zacatek feedu je otocime (nejstarsi z nove davky prvni)
+    html = "".join(
+        render_template("social/_post.html", post=p, post_comments=post_comments)
+        for p in reversed(posts)
+    )
+    return jsonify({"count": len(posts), "html": html, "latest_id": posts[0]["id"]})
 
 
 @bp.route("/feed/new", methods=["POST"])
