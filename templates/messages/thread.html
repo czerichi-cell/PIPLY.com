@@ -11,7 +11,7 @@
   <a href="{{ url_for('messages_bp.inbox') }}" class="btn btn-ghost btn-sm">← Zprávy</a>
 </div>
 
-<div class="card chat-window" id="chat-window" data-username="{{ other['username'] }}" data-last-id="{{ messages[-1]['id'] if messages else 0 }}" data-me="{{ current_user['id'] }}" data-giphy-enabled="{{ giphy_enabled|default(false)|tojson }}">
+<div class="card chat-window" id="chat-window" data-username="{{ other['username'] }}" data-last-id="{{ messages[-1]['id'] if messages else 0 }}" data-me="{{ current_user['id'] }}">
   <div class="chat-messages" id="chat-messages">
     {% for m in messages %}
       <div class="bubble {{ 'bubble-mine' if m['sender_id'] == current_user['id'] else 'bubble-theirs' }}">
@@ -69,6 +69,6 @@
   window.PIPLY_CHAT_URL = "{{ url_for('messages_bp.thread', username=other['username']) }}";
   window.PIPLY_POLL_URL_BASE = "{{ url_for('messages_bp.poll', username=other['username']) }}";
   window.PIPLY_GIF_SEARCH_URL = "{{ url_for('messages_bp.gif_search') }}";
-  window.PIPLY_GIPHY_ENABLED = document.getElementById('chat-window').dataset.giphyEnabled === 'true';
+  window.PIPLY_GIPHY_ENABLED = "{{ giphy_enabled|tojson }}";
 </script>
 {% endblock %}
