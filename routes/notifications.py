@@ -1,6 +1,6 @@
-from flask import Blueprint, render_template, redirect, url_for, g
+from flask import Blueprint, render_template, redirect, url_for, g, flash
 
-from db import query_all, execute
+from db import query_all, query_one, execute
 from helpers import login_required
 
 bp = Blueprint("notifications", __name__, url_prefix="/notifications")
@@ -18,5 +18,23 @@ def list_notifications():
            ORDER BY notifications.created_at DESC LIMIT 50""",
         (g.user["id"],),
     )
+    # spocitej nepřečtené PŘED tím, než je oznacime jako precteny - potrebujeme to
+    # pro varovani pri hromadnem mazani ("mas X neprectenych, opravdu smazat vsechny?")
+    unread_count = sum(1 for n in notes if not n["is_read"])
     execute("UPDATE notifications SET is_read=1 WHERE user_id=?", (g.user["id"],))
-    return render_template("notifications/list.html", notes=notes)
+    return render_template("notifications/list.html", notes=notes, unread_count=unread_count)
+
+
+@bp.route("/<int:notif_id>/delete", methods=["POST"])
+@login_required
+def delete_notification(notif_id):
+    execute("DELETE FROM notifications WHERE id=? AND user_id=?", (notif_id, g.user["id"]))
+    return redirect(url_for("notifications.list_notifications"))
+
+
+@bp.route("/delete-all", methods=["POST"])
+@login_required
+def delete_all_notifications():
+    execute("DELETE FROM notifications WHERE user_id=?", (g.user["id"],))
+    flash("Všechny notifikace byly smazány.", "success")
+    return redirect(url_for("notifications.list_notifications"))

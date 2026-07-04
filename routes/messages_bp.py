@@ -75,6 +75,38 @@ def inbox():
     return render_template("messages/inbox.html", conversations=conversations)
 
 
+@bp.route("/fragment")
+@login_required
+def inbox_fragment():
+    """Vraci jen fragment se seznamem konverzaci, pro realtime refresh inboxu bez reloadu."""
+    me = g.user["id"]
+    conversations = query_all(
+        """SELECT u.id, u.username, u.display_name, u.avatar_path,
+                  (SELECT content FROM messages m2
+                     WHERE (m2.sender_id=u.id AND m2.recipient_id=?) OR (m2.sender_id=? AND m2.recipient_id=u.id)
+                     ORDER BY m2.created_at DESC LIMIT 1) AS last_message,
+                  (SELECT image_path FROM messages m2b
+                     WHERE (m2b.sender_id=u.id AND m2b.recipient_id=?) OR (m2b.sender_id=? AND m2b.recipient_id=u.id)
+                     ORDER BY m2b.created_at DESC LIMIT 1) AS last_image,
+                  (SELECT gif_url FROM messages m2c
+                     WHERE (m2c.sender_id=u.id AND m2c.recipient_id=?) OR (m2c.sender_id=? AND m2c.recipient_id=u.id)
+                     ORDER BY m2c.created_at DESC LIMIT 1) AS last_gif,
+                  (SELECT created_at FROM messages m3
+                     WHERE (m3.sender_id=u.id AND m3.recipient_id=?) OR (m3.sender_id=? AND m3.recipient_id=u.id)
+                     ORDER BY m3.created_at DESC LIMIT 1) AS last_at,
+                  (SELECT COUNT(*) FROM messages m4 WHERE m4.sender_id=u.id AND m4.recipient_id=? AND m4.read_at IS NULL) AS unread
+           FROM users u
+           WHERE u.id IN (
+               SELECT sender_id FROM messages WHERE recipient_id=?
+               UNION
+               SELECT recipient_id FROM messages WHERE sender_id=?
+           )
+           ORDER BY last_at DESC""",
+        (me, me, me, me, me, me, me, me, me, me, me),
+    )
+    return render_template("messages/_conversations.html", conversations=conversations)
+
+
 @bp.route("/<username>", methods=["GET", "POST"])
 @login_required
 def thread(username):
@@ -141,6 +173,8 @@ def poll(username):
     if other is None:
         return jsonify({"messages": []})
     me = g.user["id"]
+    if is_blocked(me, other["id"]):
+        return jsonify({"messages": []})
     after_id = request.args.get("after_id", 0, type=int)
     msgs = query_all(
         """SELECT * FROM messages WHERE ((sender_id=? AND recipient_id=?) OR (sender_id=? AND recipient_id=?))

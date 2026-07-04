@@ -36,6 +36,9 @@
   </form>
 </div>
 
+<button type="button" id="feed-new-posts-banner" class="feed-new-banner" style="display:none">Nové příspěvky – klikni pro zobrazení</button>
+
+<div id="feed-posts-list">
 {% if posts %}
   {% for post in posts %}
     {% include "social/_post.html" %}
@@ -45,4 +48,13 @@
     <p>Feed je zatím prázdný. Přidej první příspěvek nebo si <a href="{{ url_for('social.friends_list') }}">najdi kamarády</a>.</p>
   </div>
 {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  window.PIPLY_FEED_CHECK_URL = "{{ url_for('social.feed_check_new') }}";
+  window.PIPLY_FEED_FRAGMENT_URL = "{{ url_for('social.feed_fragment') }}";
+  window.PIPLY_FEED_LAST_ID = {{ last_post_id }};
+</script>
 {% endblock %}

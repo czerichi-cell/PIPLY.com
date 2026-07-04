@@ -1,22 +1,25 @@
 {% extends "base.html" %}
 {% block title %}Import obchodů – Piply{% endblock %}
 {% block content %}
-<div class="page-header"><h1>Import z MT4 / CSV</h1></div>
+<div class="page-header"><h1>Import obchodů</h1></div>
 
 <div class="card" style="max-width:640px">
+  <div class="card-title">Nahrát soubor</div>
+  <p class="muted" style="margin-bottom:12px">Podporujeme dva formáty — MT4/MT5 sestavu (.htm) přímo z platformy, nebo CSV podle naší šablony.</p>
   <form method="post" enctype="multipart/form-data">
     <div class="upload-drop" style="margin-bottom:14px">
-      <input type="file" name="csv_file" accept=".csv,.txt" required style="border:none">
+      <input type="file" name="csv_file" accept=".csv,.txt,.htm,.html" required style="border:none">
     </div>
     <button type="submit" class="btn">Naimportovat</button>
   </form>
 </div>
 
 <div class="card" style="max-width:640px">
-  <div class="card-title">Jak na export z MT4</div>
-  <p class="muted">V MetaTraderu 4 otevři záložku <b>Historie účtu</b>, pravým tlačítkem vyber <b>Uložit jako sestavu</b> (HTML), otevři soubor v Excelu / Google Sheets a ulož jako <b>CSV</b>. Nebo obchody zapisuj rovnou do vlastního CSV podle vzoru níže.</p>
+  <div class="card-title">Nejspolehlivější způsob: naše CSV šablona</div>
+  <p class="muted">Stáhni si šablonu, doplň do ní svoje obchody v Excelu / Google Sheets a nahraj zpátky výše. Funguje vždy, bez ohledu na brokera.</p>
+  <a href="{{ url_for('journal.import_template_csv') }}" class="btn btn-secondary btn-sm">Stáhnout CSV šablonu</a>
   <div class="divider"></div>
-  <p class="muted" style="margin-bottom:6px">Rozpoznávané sloupce (stačí některé, nezáleží na pořadí ani velikosti písmen):</p>
+  <p class="muted" style="margin-bottom:6px">Formát šablony:</p>
   <div class="table-wrap">
   <table>
     <tr><th>Symbol</th><th>Type</th><th>Size</th><th>Open Price</th><th>Close Price</th><th>S/L</th><th>T/P</th><th>Open Time</th><th>Close Time</th><th>Profit</th></tr>
@@ -25,6 +28,12 @@
     </tr>
   </table>
   </div>
-  <p class="muted" style="margin-top:10px">Povinné jsou jen sloupce <b>Symbol</b> a <b>Profit</b> — zbytek se doplní, pokud existuje.</p>
+  <p class="muted" style="margin-top:10px">Povinné jsou jen sloupce <b>Symbol</b> a <b>Profit</b> — zbytek se doplní, pokud existuje. Ostatní běžné názvy sloupců (Item, Price Open, S/L, Volume…) taky rozpoznáme automaticky.</p>
+</div>
+
+<div class="card" style="max-width:640px">
+  <div class="card-title">Přímo z MT4 / MT5</div>
+  <p class="muted">V MetaTraderu otevři záložku <b>Historie účtu</b> (Account History), klikni pravým tlačítkem a zvol <b>Uložit jako sestavu</b> / <b>Save as Report</b> — vznikne soubor <code>.htm</code>. Ten nahraj rovnou výše, nemusíš ho nijak převádět ani otevírat v Excelu. Automaticky z něj vytáhneme tabulku uzavřených obchodů.</p>
+  <p class="muted" style="margin-top:8px">Pokud sestava má neobvyklé rozložení sloupců a import nic nenajde, použij radši CSV šablonu výše — je 100% spolehlivá.</p>
 </div>
 {% endblock %}

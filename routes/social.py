@@ -21,14 +21,63 @@ def feed():
                    (SELECT COUNT(*) FROM comments WHERE comments.post_id = posts.id) AS comment_count,
                    (SELECT COUNT(*) FROM likes WHERE likes.post_id = posts.id AND likes.user_id = ?) AS liked_by_me
             FROM posts JOIN users ON users.id = posts.user_id
-            WHERE (posts.user_id IN ({placeholders}) AND posts.visibility IN ('public','friends'))
+            WHERE posts.user_id = ?
+               OR (posts.user_id IN ({placeholders}) AND posts.visibility IN ('public','friends'))
                OR (posts.visibility='public')
             GROUP BY posts.id
             ORDER BY posts.created_at DESC LIMIT 50""",
-        [me] + fids,
+        [me, me] + fids,
     )
     post_comments = comments_for_posts([p["id"] for p in posts])
-    return render_template("social/feed.html", posts=posts, post_comments=post_comments)
+    last_post_id = posts[0]["id"] if posts else 0
+    return render_template("social/feed.html", posts=posts, post_comments=post_comments, last_post_id=last_post_id)
+
+
+@bp.route("/feed/check-new")
+@login_required
+def feed_check_new():
+    """Lehky endpoint - jen zjisti, jestli existuje novejsi prispevek nez after_id (pro realtime banner)."""
+    me = g.user["id"]
+    after_id = request.args.get("after_id", 0, type=int)
+    fids = friend_ids(me) + [me]
+    placeholders = ",".join("?" * len(fids))
+    row = query_one(
+        f"""SELECT COUNT(*) AS c FROM posts
+            WHERE id > ? AND (
+                posts.user_id = ?
+                OR (posts.user_id IN ({placeholders}) AND posts.visibility IN ('public','friends'))
+                OR (posts.visibility='public')
+            )""",
+        [after_id, me] + fids,
+    )
+    return jsonify({"new_count": row["c"] if row else 0})
+
+
+@bp.route("/feed/fragment")
+@login_required
+def feed_fragment():
+    """Vrati vykresleny fragment novych prispevku od after_id (pro realtime prepend bez reloadu)."""
+    me = g.user["id"]
+    after_id = request.args.get("after_id", 0, type=int)
+    fids = friend_ids(me) + [me]
+    placeholders = ",".join("?" * len(fids))
+    posts = query_all(
+        f"""SELECT posts.*, users.username, users.display_name, users.avatar_path,
+                   (SELECT COUNT(*) FROM likes WHERE likes.post_id = posts.id) AS like_count,
+                   (SELECT COUNT(*) FROM comments WHERE comments.post_id = posts.id) AS comment_count,
+                   (SELECT COUNT(*) FROM likes WHERE likes.post_id = posts.id AND likes.user_id = ?) AS liked_by_me
+            FROM posts JOIN users ON users.id = posts.user_id
+            WHERE posts.id > ? AND (
+                posts.user_id = ?
+                OR (posts.user_id IN ({placeholders}) AND posts.visibility IN ('public','friends'))
+                OR (posts.visibility='public')
+            )
+            GROUP BY posts.id
+            ORDER BY posts.created_at DESC LIMIT 50""",
+        [me, after_id, me] + fids,
+    )
+    post_comments = comments_for_posts([p["id"] for p in posts])
+    return render_template("social/_post_list.html", posts=posts, post_comments=post_comments)
 
 
 @bp.route("/feed/new", methods=["POST"])

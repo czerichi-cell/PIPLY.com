@@ -1,8 +1,10 @@
 import csv
 import io
+import re
 from datetime import datetime, timedelta
+from html.parser import HTMLParser
 
-from flask import Blueprint, render_template, request, redirect, url_for, flash, g
+from flask import Blueprint, render_template, request, redirect, url_for, flash, g, Response
 
 from db import query_one, query_all, execute
 from helpers import login_required, save_upload, parse_dt, week_start_for
@@ -132,6 +134,190 @@ def _to_float(value):
         return None
 
 
+# --- MT4/MT5 HTML "Statement" report parser ---------------------------
+#
+# MT4/MT5 "Save as report" exportuje jeden velky .htm soubor se vsemi
+# tabulkami (otevrene obchody, uzavrene obchody, souhrn). Misto naslepo
+# spolehat na CSV (ktery MT4 vubec neexportuje primo) tenhle parser
+# projde vsechny <tr> v souboru, najde radek se sloupci uzavrenych
+# obchodu (Ticket/Open Time/Type/Size/Item/Price/S-L/T-P/Close Time/Profit)
+# a nacte data radky, dokud vypadaji jako platne obchody.
+
+class _HTMLTableParser(HTMLParser):
+    """Rozparsuje HTML na seznam radku (kazdy radek = seznam bunek jako text)."""
+
+    def __init__(self):
+        super().__init__()
+        self.rows = []
+        self._current_row = None
+        self._current_cell = None
+        self._in_cell = False
+
+    def handle_starttag(self, tag, attrs):
+        if tag == "tr":
+            self._current_row = []
+        elif tag in ("td", "th"):
+            self._in_cell = True
+            self._current_cell = []
+        elif tag == "br" and self._in_cell:
+            self._current_cell.append(" ")
+
+    def handle_endtag(self, tag):
+        if tag == "tr" and self._current_row is not None:
+            self.rows.append(self._current_row)
+            self._current_row = None
+        elif tag in ("td", "th") and self._in_cell:
+            text = "".join(self._current_cell).strip()
+            text = re.sub(r"\s+", " ", text)
+            if self._current_row is not None:
+                self._current_row.append(text)
+            self._in_cell = False
+            self._current_cell = None
+
+    def handle_data(self, data):
+        if self._in_cell and self._current_cell is not None:
+            self._current_cell.append(data)
+
+
+_MT4_HEADER_ALIASES = {
+    "ticket": ["ticket"],
+    "opened_at": ["open time"],
+    "direction": ["type"],
+    "lot_size": ["size"],
+    "pair": ["item", "symbol"],
+    "entry_price": ["price"],  # prvni "price" sloupec = otevirani
+    "stop_loss": ["s / l", "s/l"],
+    "take_profit": ["t / p", "t/p"],
+    "closed_at": ["close time"],
+    "exit_price": ["price"],  # druhy "price" sloupec = zavirani (reseno pozicne nize)
+    "profit_loss": ["profit"],
+}
+
+
+def _looks_like_mt4_header(cells):
+    normalized = [c.strip().lower() for c in cells]
+    required = ["ticket", "open time", "type", "size", "item"]
+    return all(any(r == n for n in normalized) for r in required)
+
+
+def _map_mt4_columns(header_cells):
+    """Namapuje indexy sloupcu z hlavicky MT4 statementu. 'Price' se objevuje 2x (open/close)."""
+    normalized = [c.strip().lower() for c in header_cells]
+    mapping = {}
+    price_seen = 0
+    for i, name in enumerate(normalized):
+        if name == "ticket":
+            mapping["ticket"] = i
+        elif name == "open time":
+            mapping["opened_at"] = i
+        elif name == "type":
+            mapping["direction"] = i
+        elif name == "size":
+            mapping["lot_size"] = i
+        elif name in ("item", "symbol"):
+            mapping["pair"] = i
+        elif name in ("s / l", "s/l"):
+            mapping["stop_loss"] = i
+        elif name in ("t / p", "t/p"):
+            mapping["take_profit"] = i
+        elif name == "close time":
+            mapping["closed_at"] = i
+        elif name == "profit":
+            mapping["profit_loss"] = i
+        elif name == "price":
+            price_seen += 1
+            mapping["entry_price" if price_seen == 1 else "exit_price"] = i
+    return mapping
+
+
+def _parse_mt4_html_statement(raw_html):
+    """Zkusi najit a naimportovat tabulku uzavrenych obchodu z MT4/MT5 HTML sestavy.
+    Vraci (trades, imported, skipped) nebo (None, 0, 0) pokud nic rozpoznatelneho nenajde."""
+    parser = _HTMLTableParser()
+    try:
+        parser.feed(raw_html)
+    except Exception:
+        return None, 0, 0
+
+    rows = parser.rows
+    header_idx = None
+    mapping = None
+    for i, row in enumerate(rows):
+        if _looks_like_mt4_header(row):
+            header_idx = i
+            mapping = _map_mt4_columns(row)
+            break
+
+    if header_idx is None or mapping is None or "pair" not in mapping or "profit_loss" not in mapping:
+        return None, 0, 0
+
+    trades = []
+    imported, skipped = 0, 0
+    for row in rows[header_idx + 1:]:
+        if not row or len(row) < 5:
+            break
+        ticket_cell = row[mapping.get("ticket", 0)].strip() if mapping.get("ticket", 0) < len(row) else ""
+        if not ticket_cell.isdigit():
+            # narazili jsme na konec tabulky (prazdny radek, souhrn, dalsi sekce)
+            break
+
+        def cell(key):
+            idx = mapping.get(key)
+            if idx is None or idx >= len(row):
+                return ""
+            return row[idx]
+
+        direction_raw = cell("direction").strip().lower()
+        if direction_raw not in ("buy", "sell"):
+            # radky jako "balance" (vklad/vyber) mezi obchody - preskocit, ne ukoncit import
+            skipped += 1
+            continue
+
+        pair = cell("pair").strip().upper()
+        profit_loss = _to_float(cell("profit_loss"))
+        if not pair or profit_loss is None:
+            skipped += 1
+            continue
+
+        entry_price = _to_float(cell("entry_price"))
+        exit_price = _to_float(cell("exit_price"))
+        stop_loss = _to_float(cell("stop_loss"))
+        take_profit = _to_float(cell("take_profit"))
+        lot_size = _to_float(cell("lot_size"))
+        opened_dt = parse_dt(cell("opened_at"))
+        closed_dt = parse_dt(cell("closed_at"))
+
+        rr_ratio = None
+        if entry_price and stop_loss and exit_price:
+            risk = abs(entry_price - stop_loss)
+            reward = abs(exit_price - entry_price)
+            if risk > 0:
+                rr_ratio = round(reward / risk, 2)
+
+        trades.append({
+            "pair": pair, "direction": direction_raw, "lot_size": lot_size,
+            "entry_price": entry_price, "exit_price": exit_price,
+            "stop_loss": stop_loss, "take_profit": take_profit,
+            "profit_loss": profit_loss, "rr_ratio": rr_ratio,
+            "opened_at": opened_dt.isoformat() if opened_dt else None,
+            "closed_at": closed_dt.isoformat() if closed_dt else None,
+        })
+        imported += 1
+
+    return trades, imported, skipped
+
+
+@bp.route("/import/template.csv")
+@login_required
+def import_template_csv():
+    """Ke stazeni: prazdna CSV sablona presne v nasem formatu, nejspolehlivejsi zpusob importu."""
+    header = "Symbol,Type,Size,Open Price,Close Price,S/L,T/P,Open Time,Close Time,Profit\n"
+    example = "EURUSD,buy,0.10,1.0850,1.0910,1.0800,1.0950,2025-01-10 09:15,2025-01-10 14:30,60.00\n"
+    return Response(header + example, mimetype="text/csv", headers={
+        "Content-Disposition": "attachment; filename=piply-import-sablona.csv"
+    })
+
+
 # --- MT4 / CSV import ---------------------------------------------------
 
 COLUMN_ALIASES = {
@@ -174,11 +360,35 @@ def import_trades():
         flash("Nevybral jsi žádný soubor.", "error")
         return redirect(url_for("journal.import_trades"))
 
+    filename = file.filename.lower()
     try:
         raw = file.read().decode("utf-8-sig", errors="ignore")
     except Exception:
-        flash("Soubor se nepodařilo přečíst. Zkus ho uložit jako CSV (UTF-8).", "error")
+        flash("Soubor se nepodařilo přečíst. Zkus ho uložit jako CSV (UTF-8) nebo nahraj přímo MT4/MT5 .htm sestavu.", "error")
         return redirect(url_for("journal.import_trades"))
+
+    looks_like_html = filename.endswith((".htm", ".html")) or "<html" in raw[:2000].lower() or "<table" in raw[:5000].lower()
+
+    if looks_like_html:
+        trades, imported, skipped = _parse_mt4_html_statement(raw)
+        if trades is None:
+            flash(
+                "V MT4/MT5 sestavě se nepodařilo najít tabulku uzavřených obchodů. "
+                "Zkus prosím export přes CSV šablonu níže.",
+                "error",
+            )
+            return redirect(url_for("journal.import_trades"))
+        for t in trades:
+            execute(
+                """INSERT INTO trades
+                   (user_id, pair, direction, lot_size, entry_price, exit_price, stop_loss, take_profit,
+                    profit_loss, rr_ratio, opened_at, closed_at, source)
+                   VALUES (?,?,?,?,?,?,?,?,?,?,?,?, 'mt4')""",
+                (g.user["id"], t["pair"], t["direction"], t["lot_size"], t["entry_price"], t["exit_price"],
+                 t["stop_loss"], t["take_profit"], t["profit_loss"], t["rr_ratio"], t["opened_at"], t["closed_at"]),
+            )
+        flash(f"Import z MT4/MT5 sestavy hotový: {imported} obchodů naimportováno, {skipped} přeskočeno.", "success")
+        return redirect(url_for("journal.list_trades"))
 
     try:
         dialect = csv.Sniffer().sniff(raw[:2000], delimiters=",;\t")
@@ -194,7 +404,7 @@ def import_trades():
     if "pair" not in mapping or "profit_loss" not in mapping:
         flash(
             "Soubor neobsahuje rozpoznatelné sloupce (potřebuju aspoň Symbol/Pair a Profit). "
-            "Podívej se na vzorový CSV formát níže.",
+            "Stáhni si prosím naši CSV šablonu níže a vlož do ní svoje obchody.",
             "error",
         )
         return redirect(url_for("journal.import_trades"))

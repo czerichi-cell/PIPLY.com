@@ -444,12 +444,39 @@ tr:last-child td { border-bottom: none; }
 
 .chat-attach-preview {
   display: none;
-  align-items: center; gap: 10px;
-  background: var(--bg-elevated); border: 1px solid var(--border); border-radius: var(--radius-sm);
-  padding: 8px 10px; margin-bottom: 8px; font-size: 13px; color: var(--text-muted);
+  align-items: center; gap: 12px;
+  background: var(--bg-elevated); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 10px 12px; margin-bottom: 10px; font-size: 13px; color: var(--text-muted);
+  box-shadow: 0 4px 14px rgba(0,0,0,0.25);
+  animation: chat-attach-in .15s ease-out;
 }
-.chat-attach-preview img { height: 44px; border-radius: 6px; object-fit: cover; }
-.chat-attach-remove { margin-left: auto; background: none; border: none; color: var(--text-faint); cursor: pointer; font-size: 18px; line-height: 1; }
+@keyframes chat-attach-in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+.chat-attach-preview img {
+  height: 56px; width: 56px; border-radius: var(--radius-sm); object-fit: cover;
+  border: 1px solid var(--border);
+}
+.chat-attach-remove {
+  margin-left: auto; background: var(--card); border: 1px solid var(--border); color: var(--text-muted);
+  cursor: pointer; font-size: 16px; line-height: 1; width: 26px; height: 26px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.chat-attach-remove:hover { background: var(--red-dim); color: var(--red); border-color: var(--red); }
+
+.feed-new-banner {
+  display: block; width: 100%; margin-bottom: 14px;
+  background: var(--accent-dim); color: var(--accent); border: 1px solid var(--accent);
+  border-radius: var(--radius-sm); padding: 10px; font-size: 13.5px; font-weight: 600;
+  cursor: pointer; text-align: center;
+}
+.feed-new-banner:hover { background: var(--accent); color: var(--accent-ink); }
+
+.notif-actions-row { display: flex; justify-content: flex-end; margin-bottom: 10px; }
+.notif-row-delete {
+  margin-left: auto; background: none; border: none; color: var(--text-faint);
+  cursor: pointer; padding: 4px; flex-shrink: 0; align-self: center;
+}
+.notif-row-delete:hover { color: var(--red); }
+.notif-row-body { display: flex; flex: 1; gap: 10px; }
 
 .bubble-image { max-width: 100%; border-radius: 10px; display: block; margin-bottom: 4px; }
 .bubble-gif { max-width: 100%; border-radius: 10px; display: block; margin-bottom: 4px; }

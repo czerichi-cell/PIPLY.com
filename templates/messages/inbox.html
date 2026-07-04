@@ -6,27 +6,13 @@
   <a href="{{ url_for('profile.search_users') }}" class="btn btn-sm">Napsat nové zprávě</a>
 </div>
 
-<div class="card">
-{% if conversations %}
-  {% for c in conversations %}
-    <a class="conv-row" href="{{ url_for('messages_bp.thread', username=c['username']) }}">
-      <img class="avatar avatar-md" src="{{ url_for('static', filename=c['avatar_path']) if c['avatar_path'] else url_for('static', filename='img/piply-icon.png') }}" alt="">
-      <div style="flex:1; min-width:0">
-        <div style="display:flex; justify-content:space-between">
-          <b>{{ c['display_name'] or c['username'] }}</b>
-          {% if c['unread'] %}<span class="pill pill-green">{{ c['unread'] }}</span>{% endif %}
-        </div>
-        <div class="last">
-          {% if c['last_message'] %}{{ c['last_message'] }}
-          {% elif c['last_gif'] %}🎬 GIF
-          {% elif c['last_image'] %}📷 Fotka
-          {% else %}&nbsp;{% endif %}
-        </div>
-      </div>
-    </a>
-  {% endfor %}
-{% else %}
-  <div class="empty-state"><p>Zatím žádné konverzace. <a href="{{ url_for('profile.search_users') }}">Najdi kamaráda</a> a napiš mu.</p></div>
-{% endif %}
+<div class="card" id="conversations-list">
+{% include "messages/_conversations.html" %}
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  window.PIPLY_INBOX_REFRESH_URL = "{{ url_for('messages_bp.inbox_fragment') }}";
+</script>
 {% endblock %}

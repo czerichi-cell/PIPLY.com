@@ -378,6 +378,69 @@ const PIPLY_EMOJIS = [
   setInterval(poll, 3000);
 })();
 
+// --- Feed: realtime banner "nove prispevky" bez automatickeho reloadu (nechceme skakat obsahem pod rukama) ---
+
+(function initFeedRealtime() {
+  const banner = document.getElementById("feed-new-posts-banner");
+  const list = document.getElementById("feed-posts-list");
+  if (!banner || !list || !window.PIPLY_FEED_CHECK_URL) return;
+
+  let lastId = window.PIPLY_FEED_LAST_ID || 0;
+
+  async function checkNew() {
+    try {
+      const res = await fetch(`${window.PIPLY_FEED_CHECK_URL}?after_id=${lastId}`);
+      const data = await res.json();
+      if (data.new_count > 0) {
+        banner.textContent = data.new_count === 1 ? "1 nový příspěvek – klikni pro zobrazení" : `${data.new_count} nové příspěvky – klikni pro zobrazení`;
+        banner.style.display = "block";
+      }
+    } catch (err) {
+      // ticho
+    }
+  }
+
+  banner.addEventListener("click", async () => {
+    try {
+      const res = await fetch(`${window.PIPLY_FEED_FRAGMENT_URL}?after_id=${lastId}`);
+      const html = await res.text();
+      const wrapper = document.createElement("div");
+      wrapper.innerHTML = html;
+      const newPosts = Array.from(wrapper.children);
+      newPosts.reverse().forEach((el) => list.prepend(el));
+      const ids = newPosts
+        .map((el) => parseInt((el.id || "").replace("post-", ""), 10))
+        .filter((n) => !isNaN(n));
+      if (ids.length) lastId = Math.max(lastId, ...ids);
+      banner.style.display = "none";
+      initUploadZones(list);
+    } catch (err) {
+      // ticho
+    }
+  });
+
+  setInterval(checkNew, 6000);
+})();
+
+// --- Zpravy: realtime refresh seznamu konverzaci na strance inboxu (mimo konkretni vlakno) ---
+
+(function initInboxRealtime() {
+  const list = document.getElementById("conversations-list");
+  if (!list || !window.PIPLY_INBOX_REFRESH_URL) return;
+
+  async function refresh() {
+    try {
+      const res = await fetch(window.PIPLY_INBOX_REFRESH_URL);
+      const html = await res.text();
+      list.innerHTML = html;
+    } catch (err) {
+      // ticho
+    }
+  }
+
+  setInterval(refresh, 4000);
+})();
+
 // --- Globalni live pocitadla (zpravy, notifikace) - bez nutnosti reloadu stranky ---
 
 (function initLiveCounts() {
