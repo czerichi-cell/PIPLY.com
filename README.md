@@ -5,18 +5,15 @@ kamarády tradery. Běží lokálně na tvém počítači (Python + Flask + SQLi
 
 ## Co to umí
 
-- **Účet** – registrace, přihlášení ("zůstat přihlášen"), editace profilu (fotka, bio, počáteční kapitál)
+- **Účet** – registrace, přihlášení, editace profilu (fotka, bio, počáteční kapitál)
 - **Obchodní deník** – ruční zápis obchodů (pár, směr, ceny, SL/TP, P/L, RRR,
-  emoce, hodnocení, poznámky, screenshot grafu) + **import z MT4** (copy-paste,
-  žádný export) nebo CSV
+  emoce, hodnocení, poznámky, screenshot grafu) + **import z MT4/CSV**
 - **Týdenní shrnutí** – přehled obchodů po týdnech + vlastní reflexe a hodnocení
 - **Statistiky a grafy** – winrate, profit factor, průměrné RRR, max drawdown,
   kapitálová křivka, rozpad podle páru a podle emoce (Chart.js)
-- **Sociální síť** – feed s příspěvky (text/foto, veřejné/přátelé/jen já) s
-  real-time upozorněním na nové příspěvky, lajky a komentáře, systém přátel
-  (žádosti, přijetí, odebrání, blokování), soukromé zprávy 1:1 (chat s
-  obrázky, emoji a GIFy) v reálném čase, notifikace (mazatelné jednotlivě i
-  hromadně), nastavení soukromí zpráv
+- **Sociální síť** – feed s příspěvky (text/foto, veřejné/přátelé/jen já),
+  lajky a komentáře, systém přátel (žádosti, přijetí, odebrání, blokování),
+  soukromé zprávy 1:1 (chat), notifikace, nastavení soukromí zpráv
 
 **Vynecháno zatím záměrně** (podle zadání): AI novinky z Forexu/politiky a
 ekonomický kalendář z ForexFactory. Dá se doplnit později jako další modul,
@@ -62,34 +59,10 @@ tenhle krok udělat, dej vědět, pomůžu to nasadit.
 
 ## Import obchodů z MT4
 
-Žádný export ani Excel: v MetaTraderu 4 otevři záložku **Historie účtu**,
-klikni do tabulky, **Ctrl+A** (vyber vše), **Ctrl+C** (zkopíruj) a v appce
-přes *Deník → Import z MT4* vlož (**Ctrl+V**) do textového pole. CSV soubor
-(např. z jiného brokera) jde nahrát jako záložní varianta na téže stránce.
-
-## GIFy v chatu (volitelné)
-
-Chat umí posílat GIFy přes Giphy. Bez API klíče tlačítko GIF v chatu prostě
-nebude vidět – nic se nerozbije, jen tahle jedna funkce nebude aktivní.
-
-1. Zaregistruj se zdarma na [developers.giphy.com](https://developers.giphy.com/)
-   a vytvoř si "app" → dostaneš **API klíč**.
-2. Appku pak spouštěj s tímhle klíčem v proměnné prostředí:
-
-   Mac/Linux:
-   ```bash
-   GIPHY_API_KEY=tvuj-klic python3 app.py
-   ```
-   Windows (PowerShell):
-   ```powershell
-   $env:GIPHY_API_KEY="tvuj-klic"
-   python app.py
-   ```
-   Windows (cmd):
-   ```cmd
-   set GIPHY_API_KEY=tvuj-klic
-   python app.py
-   ```
+V MetaTraderu 4: záložka **Historie účtu** → pravé tlačítko → **Uložit jako
+sestavu** → otevři v Excelu/Google Sheets → ulož jako **CSV** → nahraj v appce
+přes *Deník → Import z MT4/CSV*. Detaily a vzorový formát jsou přímo na té
+stránce v appce.
 
 ## Bezpečnost / nastavení
 

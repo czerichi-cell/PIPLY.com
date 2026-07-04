@@ -378,64 +378,6 @@ const PIPLY_EMOJIS = [
   setInterval(poll, 3000);
 })();
 
-// --- Inbox: real-time refresh seznamu konverzaci (mimo otevreny chat) ---
-
-(function initInboxPoll() {
-  const list = document.getElementById("conversations-list");
-  if (!list || !window.PIPLY_INBOX_REFRESH_URL) return;
-
-  async function refresh() {
-    try {
-      const res = await fetch(window.PIPLY_INBOX_REFRESH_URL);
-      if (!res.ok) return;
-      const html = await res.text();
-      list.innerHTML = html;
-    } catch (err) {
-      // ticho
-    }
-  }
-
-  setInterval(refresh, 4000);
-})();
-
-// --- Feed: real-time kontrola novych prispevku (banner "zobrazit") ---
-
-(function initFeedPoll() {
-  const container = document.getElementById("feed-posts");
-  const banner = document.getElementById("feed-new-banner");
-  if (!container || !banner || !window.PIPLY_FEED_POLL_URL) return;
-
-  let latestId = parseInt(container.dataset.latestId || "0", 10);
-  let pendingHtml = "";
-
-  async function poll() {
-    try {
-      const res = await fetch(`${window.PIPLY_FEED_POLL_URL}?after_id=${latestId}`);
-      const data = await res.json();
-      if (data.count > 0) {
-        pendingHtml = data.html;
-        banner.textContent = `🔄 ${data.count} ${data.count === 1 ? "nový příspěvek" : "nové příspěvky"} – zobrazit`;
-        banner.dataset.latestId = data.latest_id;
-        banner.style.display = "block";
-      }
-    } catch (err) {
-      // ticho
-    }
-  }
-
-  banner.addEventListener("click", () => {
-    if (!pendingHtml) return;
-    container.insertAdjacentHTML("afterbegin", pendingHtml);
-    latestId = parseInt(banner.dataset.latestId || latestId, 10);
-    container.dataset.latestId = latestId;
-    pendingHtml = "";
-    banner.style.display = "none";
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  });
-
-  setInterval(poll, 6000);
-})();
-
 // --- Globalni live pocitadla (zpravy, notifikace) - bez nutnosti reloadu stranky ---
 
 (function initLiveCounts() {

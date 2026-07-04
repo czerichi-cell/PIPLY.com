@@ -51,7 +51,7 @@
       <td>{% if t['emotion'] %}<span class="emotion-tag">{{ t['emotion'] }}</span>{% endif %}</td>
       <td style="white-space:nowrap">
         <a href="{{ url_for('journal.edit_trade', trade_id=t['id']) }}" class="btn btn-ghost btn-sm">Upravit</a>
-        <form method="post" action="{{ url_for('journal.delete_trade', trade_id=t['id']) }}" style="display:inline" data-confirm="Opravdu smazat tenhle obchod z deníku?">
+        <form method="post" action="{{ url_for('journal.delete_trade', trade_id=t['id']) }}" style="display:inline" onsubmit="return confirm('Smazat obchod?');">
           <button type="submit" class="btn btn-ghost btn-sm">Smazat</button>
         </form>
       </td>
