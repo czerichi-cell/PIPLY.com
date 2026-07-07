@@ -89,6 +89,17 @@
 
 <div class="toast-container" id="toast-container"></div>
 
+<div class="cookie-banner" id="cookie-banner" style="display:none">
+  <div class="cookie-banner-text">
+    Tenhle web používá cookies pro přihlášení a fungování appky (např. udržení session). Pokračováním v používání s tím souhlasíš.
+    <a href="{{ url_for('static', filename='privacy.html') }}" target="_blank">Více info</a>
+  </div>
+  <div class="cookie-banner-actions">
+    <button type="button" class="btn btn-sm" id="cookie-accept">Přijmout</button>
+    <button type="button" class="btn btn-ghost btn-sm" id="cookie-decline">Odmítnout</button>
+  </div>
+</div>
+
 {% if current_user and chat_widget_enabled %}
 <div class="chat-widget" id="chat-widget">
   <div class="chat-widget-panel" id="chat-widget-panel" style="display:none">

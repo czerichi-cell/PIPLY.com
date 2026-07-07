@@ -441,36 +441,83 @@ const PIPLY_EMOJIS = [
   setInterval(refresh, 4000);
 })();
 
+// --- Cookie lista (klasicke upozorneni, zapamatuje si volbu v localStorage) ---
+
+(function initCookieBanner() {
+  const banner = document.getElementById("cookie-banner");
+  if (!banner) return;
+  const KEY = "piply_cookie_consent";
+
+  try {
+    if (localStorage.getItem(KEY)) return; // uz se rozhodl drive
+  } catch (err) {
+    return; // localStorage nedostupny (napr. striktni privacy mod) - radsi neobtezovat
+  }
+
+  banner.style.display = "flex";
+
+  function dismiss(value) {
+    try { localStorage.setItem(KEY, value); } catch (err) { /* ticho */ }
+    banner.style.display = "none";
+  }
+
+  document.getElementById("cookie-accept").addEventListener("click", () => dismiss("accepted"));
+  document.getElementById("cookie-decline").addEventListener("click", () => dismiss("declined"));
+})();
+
 // --- Zvuk notifikace (generovany primo v prohlizeci, zadny externi soubor neni potreba) ---
 
 let _piplyAudioCtx = null;
+function _piplyGetAudioCtx() {
+  if (!_piplyAudioCtx) {
+    const Ctx = window.AudioContext || window.webkitAudioContext;
+    if (!Ctx) return null;
+    _piplyAudioCtx = new Ctx();
+  }
+  return _piplyAudioCtx;
+}
+
+// Prohlizece zamykaji prehravani zvuku, dokud uzivatel se strankou neco neudela
+// (klik, klavesa, dotyk). Proto AudioContext "odemkneme" hned pri prvni interakci,
+// aby uz byl pripraveny, az prijde skutecna notifikace.
+["click", "keydown", "touchstart"].forEach((evt) => {
+  document.addEventListener(evt, () => {
+    const ctx = _piplyGetAudioCtx();
+    if (ctx && ctx.state === "suspended") ctx.resume().catch(() => {});
+  }, { once: true, passive: true });
+});
+
+function _piplyScheduleBeep(ctx) {
+  const now = ctx.currentTime;
+  const notes = [
+    { freq: 880, start: 0, dur: 0.09 },
+    { freq: 1318.5, start: 0.09, dur: 0.14 },
+  ];
+  notes.forEach((n) => {
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = "sine";
+    osc.frequency.value = n.freq;
+    gain.gain.setValueAtTime(0, now + n.start);
+    gain.gain.linearRampToValueAtTime(0.22, now + n.start + 0.012);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + n.start + n.dur);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start(now + n.start);
+    osc.stop(now + n.start + n.dur + 0.02);
+  });
+}
+
 function playNotificationSound() {
   if (!window.PIPLY_NOTIFY_SOUND_ENABLED) return;
   try {
-    if (!_piplyAudioCtx) {
-      _piplyAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const ctx = _piplyGetAudioCtx();
+    if (!ctx) return;
+    if (ctx.state === "suspended") {
+      ctx.resume().then(() => _piplyScheduleBeep(ctx)).catch(() => {});
+    } else {
+      _piplyScheduleBeep(ctx);
     }
-    const ctx = _piplyAudioCtx;
-    if (ctx.state === "suspended") ctx.resume();
-
-    const now = ctx.currentTime;
-    const notes = [
-      { freq: 880, start: 0, dur: 0.09 },
-      { freq: 1318.5, start: 0.09, dur: 0.14 },
-    ];
-    notes.forEach((n) => {
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.type = "sine";
-      osc.frequency.value = n.freq;
-      gain.gain.setValueAtTime(0, now + n.start);
-      gain.gain.linearRampToValueAtTime(0.18, now + n.start + 0.012);
-      gain.gain.exponentialRampToValueAtTime(0.0001, now + n.start + n.dur);
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      osc.start(now + n.start);
-      osc.stop(now + n.start + n.dur + 0.02);
-    });
   } catch (err) {
     // ticho - napr. prohlizec jeste nepovolil audio pred prvni interakci
   }
