@@ -65,6 +65,10 @@
       <input type="checkbox" name="chat_widget_enabled" id="cw" style="width:auto" {{ 'checked' if not settings or settings['chat_widget_enabled'] }}>
       <label for="cw" style="margin:0">Zobrazovat plovoucí chat okénko vpravo dole</label>
     </div>
+    <div class="field" style="display:flex; align-items:center; gap:8px">
+      <input type="checkbox" name="notify_sound_enabled" id="nsound" style="width:auto" {{ 'checked' if not settings or settings['notify_sound_enabled'] }}>
+      <label for="nsound" style="margin:0">Přehrát zvuk při nové notifikaci</label>
+    </div>
     <button type="submit" class="btn btn-secondary">Uložit nastavení</button>
   </form>
 </div>

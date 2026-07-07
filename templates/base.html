@@ -143,6 +143,7 @@
   window.PIPLY_WIDGET_SEND_URL_BASE = {{ (url_for('messages_bp.thread', username='__USER__'))|tojson if current_user else 'null' }};
   window.PIPLY_WIDGET_POLL_URL_BASE = {{ (url_for('messages_bp.poll', username='__USER__'))|tojson if current_user else 'null' }};
   window.PIPLY_LIVE_COUNTS_URL = "{{ url_for('live_counts') }}";
+  window.PIPLY_NOTIFY_SOUND_ENABLED = {{ 'true' if notify_sound_enabled else 'false' }};
 </script>
 <script src="{{ url_for('static', filename='js/app.js') }}"></script>
 {% block scripts %}{% endblock %}

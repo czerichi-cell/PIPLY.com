@@ -35,15 +35,20 @@ def create_app():
     def inject_globals():
         if g.get("user"):
             from db import query_one
-            settings = query_one("SELECT chat_widget_enabled FROM user_settings WHERE user_id=?", (g.user["id"],))
+            settings = query_one(
+                "SELECT chat_widget_enabled, notify_sound_enabled FROM user_settings WHERE user_id=?",
+                (g.user["id"],),
+            )
             widget_enabled = settings["chat_widget_enabled"] if settings and settings["chat_widget_enabled"] is not None else 1
+            sound_enabled = settings["notify_sound_enabled"] if settings and settings["notify_sound_enabled"] is not None else 1
             return {
                 "current_user": g.user,
                 "notif_count": unread_notification_count(g.user["id"]),
                 "msg_count": unread_message_count(g.user["id"]),
                 "chat_widget_enabled": bool(widget_enabled),
+                "notify_sound_enabled": bool(sound_enabled),
             }
-        return {"current_user": None, "notif_count": 0, "msg_count": 0, "chat_widget_enabled": False}
+        return {"current_user": None, "notif_count": 0, "msg_count": 0, "chat_widget_enabled": False, "notify_sound_enabled": False}
 
     # --- Registrace blueprintu ---
     from routes.auth import bp as auth_bp

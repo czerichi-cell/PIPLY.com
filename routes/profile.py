@@ -116,10 +116,11 @@ def update_privacy():
     notify_messages = 1 if request.form.get("notify_messages") else 0
     notify_social = 1 if request.form.get("notify_social") else 0
     chat_widget_enabled = 1 if request.form.get("chat_widget_enabled") else 0
+    notify_sound_enabled = 1 if request.form.get("notify_sound_enabled") else 0
     execute(
-        """UPDATE user_settings SET messages_privacy=?, notify_messages=?, notify_social=?, chat_widget_enabled=?
-           WHERE user_id=?""",
-        (messages_privacy, notify_messages, notify_social, chat_widget_enabled, g.user["id"]),
+        """UPDATE user_settings SET messages_privacy=?, notify_messages=?, notify_social=?,
+           chat_widget_enabled=?, notify_sound_enabled=? WHERE user_id=?""",
+        (messages_privacy, notify_messages, notify_social, chat_widget_enabled, notify_sound_enabled, g.user["id"]),
     )
     flash("Nastavení uloženo.", "success")
     return redirect(url_for("profile.edit_profile"))

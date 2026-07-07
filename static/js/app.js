@@ -441,6 +441,41 @@ const PIPLY_EMOJIS = [
   setInterval(refresh, 4000);
 })();
 
+// --- Zvuk notifikace (generovany primo v prohlizeci, zadny externi soubor neni potreba) ---
+
+let _piplyAudioCtx = null;
+function playNotificationSound() {
+  if (!window.PIPLY_NOTIFY_SOUND_ENABLED) return;
+  try {
+    if (!_piplyAudioCtx) {
+      _piplyAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    const ctx = _piplyAudioCtx;
+    if (ctx.state === "suspended") ctx.resume();
+
+    const now = ctx.currentTime;
+    const notes = [
+      { freq: 880, start: 0, dur: 0.09 },
+      { freq: 1318.5, start: 0.09, dur: 0.14 },
+    ];
+    notes.forEach((n) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = "sine";
+      osc.frequency.value = n.freq;
+      gain.gain.setValueAtTime(0, now + n.start);
+      gain.gain.linearRampToValueAtTime(0.18, now + n.start + 0.012);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + n.start + n.dur);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(now + n.start);
+      osc.stop(now + n.start + n.dur + 0.02);
+    });
+  } catch (err) {
+    // ticho - napr. prohlizec jeste nepovolil audio pred prvni interakci
+  }
+}
+
 // --- Toasty (docasna upozorneni v pravem hornim rohu, sama zmizi) ---
 
 function showToast(title, body, opts) {
@@ -518,6 +553,7 @@ function showToast(title, body, opts) {
             body = (who ? `<b>${who}</b> ` : "") + (latest.message || "");
           }
           showToast(title, body, { href });
+          playNotificationSound();
         }
       }
       firstRun = false;

@@ -38,6 +38,8 @@ def _run_migrations(conn):
     existing_cols = {row[1] for row in conn.execute("PRAGMA table_info(user_settings)").fetchall()}
     if "chat_widget_enabled" not in existing_cols:
         conn.execute("ALTER TABLE user_settings ADD COLUMN chat_widget_enabled INTEGER DEFAULT 1")
+    if "notify_sound_enabled" not in existing_cols:
+        conn.execute("ALTER TABLE user_settings ADD COLUMN notify_sound_enabled INTEGER DEFAULT 1")
 
 
 def query_all(sql, params=()):
