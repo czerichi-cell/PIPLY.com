@@ -506,12 +506,18 @@ function showToast(title, body, opts) {
           lastSeenNotifId = latest.id;
           const who = latest.actor_display_name || latest.actor_username || "";
           let href = "/notifications";
+          let title, body;
           if (latest.type === "message" && latest.actor_username) {
             href = window.PIPLY_WIDGET_SEND_URL_BASE
               ? window.PIPLY_WIDGET_SEND_URL_BASE.replace("__USER__", latest.actor_username)
               : "/notifications";
+            title = "Nová zpráva";
+            body = who ? `<b>${who}</b>` : "";
+          } else {
+            title = "Oznámení";
+            body = (who ? `<b>${who}</b> ` : "") + (latest.message || "");
           }
-          showToast(who ? `<b>${who}</b>` : "Nová notifikace", latest.message || "", { href });
+          showToast(title, body, { href });
         }
       }
       firstRun = false;
