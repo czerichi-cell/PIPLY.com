@@ -67,11 +67,32 @@ def create_app():
     @app.route("/api/live-counts")
     def live_counts():
         from flask import jsonify
+        from db import query_one
         if not g.user:
-            return jsonify({"unread_messages": 0, "unread_notifications": 0})
+            return jsonify({"unread_messages": 0, "unread_notifications": 0, "latest_notification": None})
+
+        latest = query_one(
+            """SELECT notifications.id, notifications.message, notifications.type,
+                      users.display_name AS actor_display_name, users.username AS actor_username
+               FROM notifications
+               LEFT JOIN users ON users.id = notifications.actor_id
+               WHERE notifications.user_id = ? AND notifications.is_read = 0
+               ORDER BY notifications.created_at DESC LIMIT 1""",
+            (g.user["id"],),
+        )
+        latest_data = None
+        if latest:
+            latest_data = {
+                "id": latest["id"],
+                "message": latest["message"],
+                "type": latest["type"],
+                "actor_display_name": latest["actor_display_name"],
+                "actor_username": latest["actor_username"],
+            }
         return jsonify({
             "unread_messages": unread_message_count(g.user["id"]),
             "unread_notifications": unread_notification_count(g.user["id"]),
+            "latest_notification": latest_data,
         })
 
     @app.errorhandler(404)

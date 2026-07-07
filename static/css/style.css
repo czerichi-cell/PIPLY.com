@@ -519,3 +519,91 @@ tr:last-child td { border-bottom: none; }
 .gif-item:hover img { opacity: .85; }
 .picker-empty { padding: 20px; text-align: center; color: var(--text-faint); font-size: 12.5px; }
 .chat-input-wrap { position: relative; flex: 1; display: flex; }
+/* ============ Smooth page transitions ============ */
+@view-transition {
+  navigation: auto;
+}
+html.piply-loaded body {
+  animation: piply-page-in .18s ease-out;
+}
+@keyframes piply-page-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+html.piply-fading body {
+  opacity: 0;
+  transition: opacity .09s ease-out;
+}
+::view-transition-old(root) { animation: piply-vt-out .15s ease-out both; }
+::view-transition-new(root) { animation: piply-vt-in .18s ease-out both; }
+@keyframes piply-vt-out { to { opacity: 0; transform: translateY(-4px); } }
+@keyframes piply-vt-in { from { opacity: 0; transform: translateY(4px); } }
+
+/* ============ Toasty (docasna upozorneni, prave nahore) ============ */
+.toast-container {
+  position: fixed; top: 18px; right: 18px; z-index: 999;
+  display: flex; flex-direction: column; gap: 10px;
+  max-width: 320px;
+}
+.toast {
+  background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-sm);
+  padding: 12px 14px; box-shadow: 0 12px 30px rgba(0,0,0,0.4);
+  opacity: 0; transform: translateX(24px) scale(.97);
+  transition: opacity .2s ease, transform .2s ease;
+}
+.toast.show { opacity: 1; transform: translateX(0) scale(1); }
+.toast-title { font-size: 13.5px; font-weight: 600; color: var(--text); margin-bottom: 2px; }
+.toast-body { font-size: 12.5px; color: var(--text-muted); }
+
+/* ============ Plovouci chat widget (roh vpravo dole) ============ */
+.chat-widget { position: fixed; bottom: 20px; right: 20px; z-index: 900; display: flex; flex-direction: column; align-items: flex-end; gap: 10px; }
+.chat-widget-bubble {
+  width: 52px; height: 52px; border-radius: 50%;
+  background: var(--accent); color: var(--accent-ink); border: none; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.35);
+  position: relative;
+}
+.chat-widget-bubble:hover { filter: brightness(1.08); }
+.chat-widget-bubble.is-open { transform: rotate(0deg); }
+.chat-widget-bubble .badge {
+  position: absolute; top: -4px; right: -4px;
+  background: var(--red); color: #fff; border-radius: 999px;
+  font-size: 11px; min-width: 18px; height: 18px; padding: 0 4px;
+  display: flex; align-items: center; justify-content: center; line-height: 1;
+}
+.chat-widget-panel {
+  width: 320px; height: 440px;
+  background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+  box-shadow: 0 20px 50px rgba(0,0,0,0.45);
+  display: flex; flex-direction: column; overflow: hidden;
+  animation: chat-widget-in .16s ease-out;
+}
+@keyframes chat-widget-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+.chat-widget-header {
+  display: flex; align-items: center; gap: 8px;
+  padding: 12px 14px; border-bottom: 1px solid var(--border);
+  font-weight: 600; font-size: 14px; flex-shrink: 0;
+}
+.chat-widget-header span { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.chat-widget-back, .chat-widget-close, .chat-widget-expand {
+  background: none; border: none; color: var(--text-muted); cursor: pointer;
+  display: flex; align-items: center; justify-content: center; padding: 2px;
+}
+.chat-widget-close { font-size: 20px; line-height: 1; }
+.chat-widget-back:hover, .chat-widget-close:hover, .chat-widget-expand:hover { color: var(--text); }
+.chat-widget-body { flex: 1; display: flex; flex-direction: column; overflow-y: auto; min-height: 0; }
+.chat-widget-loading, .chat-widget-empty {
+  padding: 24px; text-align: center; color: var(--text-faint); font-size: 13px; margin: auto;
+}
+.chat-widget-conv-list { display: flex; flex-direction: column; }
+.chat-widget-conv-list .conv-row { padding: 10px 14px; }
+.chat-widget-messages {
+  flex: 1; overflow-y: auto; padding: 12px 14px;
+  display: flex; flex-direction: column; gap: 6px;
+}
+.chat-widget-messages .bubble { max-width: 80%; font-size: 13px; padding: 7px 10px; }
+.chat-widget-input-row {
+  display: flex; gap: 8px; padding: 10px 12px; border-top: 1px solid var(--border); flex-shrink: 0;
+}
+.chat-widget-input-row input { flex: 1; font-size: 13px; }

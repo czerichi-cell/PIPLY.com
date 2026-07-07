@@ -441,12 +441,44 @@ const PIPLY_EMOJIS = [
   setInterval(refresh, 4000);
 })();
 
-// --- Globalni live pocitadla (zpravy, notifikace) - bez nutnosti reloadu stranky ---
+// --- Toasty (docasna upozorneni v pravem hornim rohu, sama zmizi) ---
+
+function showToast(title, body, opts) {
+  opts = opts || {};
+  const container = document.getElementById("toast-container");
+  if (!container) return;
+
+  const toast = document.createElement("div");
+  toast.className = "toast";
+  toast.innerHTML = `
+    <div class="toast-title">${title}</div>
+    ${body ? `<div class="toast-body">${body}</div>` : ""}
+  `;
+  if (opts.href) {
+    toast.style.cursor = "pointer";
+    toast.addEventListener("click", () => { window.location.href = opts.href; });
+  }
+  container.appendChild(toast);
+  requestAnimationFrame(() => toast.classList.add("show"));
+
+  const remove = () => {
+    toast.classList.remove("show");
+    setTimeout(() => toast.remove(), 250);
+  };
+  const timer = setTimeout(remove, opts.duration || 4500);
+  toast.addEventListener("mouseenter", () => clearTimeout(timer));
+}
+
+// --- Globalni live pocitadla (zpravy, notifikace) - bez nutnosti reloadu stranky, + toast na nove notifikace ---
 
 (function initLiveCounts() {
   const msgBadge = document.getElementById("msg-badge");
   const notifBadge = document.getElementById("notif-badge");
-  if (!msgBadge && !notifBadge) return;
+  const widgetBadge = document.getElementById("chat-widget-badge");
+  if (!window.PIPLY_LOGGED_IN) return;
+
+  let lastSeenNotifId = null;
+  let firstRun = true;
 
   function setBadge(el, count) {
     if (!el) return;
@@ -460,10 +492,29 @@ const PIPLY_EMOJIS = [
 
   async function refreshCounts() {
     try {
-      const res = await fetch("/api/live-counts");
+      const res = await fetch(window.PIPLY_LIVE_COUNTS_URL || "/api/live-counts");
       const data = await res.json();
       setBadge(msgBadge, data.unread_messages);
       setBadge(notifBadge, data.unread_notifications);
+      setBadge(widgetBadge, data.unread_messages);
+
+      const latest = data.latest_notification;
+      if (latest) {
+        if (firstRun) {
+          lastSeenNotifId = latest.id;
+        } else if (lastSeenNotifId === null || latest.id > lastSeenNotifId) {
+          lastSeenNotifId = latest.id;
+          const who = latest.actor_display_name || latest.actor_username || "";
+          let href = "/notifications";
+          if (latest.type === "message" && latest.actor_username) {
+            href = window.PIPLY_WIDGET_SEND_URL_BASE
+              ? window.PIPLY_WIDGET_SEND_URL_BASE.replace("__USER__", latest.actor_username)
+              : "/notifications";
+          }
+          showToast(who ? `<b>${who}</b>` : "Nová notifikace", latest.message || "", { href });
+        }
+      }
+      firstRun = false;
     } catch (err) {
       // ticho
     }
@@ -471,4 +522,197 @@ const PIPLY_EMOJIS = [
 
   refreshCounts();
   setInterval(refreshCounts, 5000);
+})();
+
+// --- Plovouci chat widget (bublina vpravo dole, jako u IG na pocitaci) ---
+
+(function initChatWidget() {
+  const widget = document.getElementById("chat-widget");
+  const bubble = document.getElementById("chat-widget-bubble");
+  const panel = document.getElementById("chat-widget-panel");
+  const closeBtn = document.getElementById("chat-widget-close");
+  const backBtn = document.getElementById("chat-widget-back");
+  const title = document.getElementById("chat-widget-title");
+  const body = document.getElementById("chat-widget-body");
+  if (!widget || !window.PIPLY_LOGGED_IN) return;
+
+  // Na strance Zprav uz je plnohodnotny chat - widget tam schovame, at se to nebije
+  if (window.location.pathname.startsWith("/messages")) {
+    widget.style.display = "none";
+    return;
+  }
+
+  let pollTimer = null;
+  let currentUsername = null;
+
+  function stopPolling() {
+    if (pollTimer) { clearInterval(pollTimer); pollTimer = null; }
+  }
+
+  function openPanel() {
+    panel.style.display = "flex";
+    bubble.classList.add("is-open");
+    loadConversationList();
+  }
+  function closePanel() {
+    panel.style.display = "none";
+    bubble.classList.remove("is-open");
+    stopPolling();
+  }
+
+  bubble.addEventListener("click", () => {
+    if (panel.style.display === "none") openPanel(); else closePanel();
+  });
+  closeBtn.addEventListener("click", closePanel);
+  backBtn.addEventListener("click", () => { stopPolling(); currentUsername = null; loadConversationList(); });
+
+  async function loadConversationList() {
+    title.textContent = "Zprávy";
+    backBtn.style.display = "none";
+    body.innerHTML = '<div class="chat-widget-loading">Načítám…</div>';
+    try {
+      const res = await fetch(window.PIPLY_WIDGET_CONV_LIST_URL);
+      const html = await res.text();
+      const wrap = document.createElement("div");
+      wrap.className = "chat-widget-conv-list";
+      wrap.innerHTML = html;
+      body.innerHTML = "";
+      body.appendChild(wrap);
+      wrap.querySelectorAll(".conv-row").forEach((row) => {
+        row.addEventListener("click", (e) => {
+          e.preventDefault();
+          const href = row.getAttribute("href") || "";
+          const parts = href.split("/").filter(Boolean);
+          const username = parts[parts.length - 1];
+          if (username) openThread(username);
+        });
+      });
+      if (!wrap.querySelector(".conv-row")) {
+        body.innerHTML = '<div class="chat-widget-empty">Zatím žádné konverzace.</div>';
+      }
+    } catch (err) {
+      body.innerHTML = '<div class="chat-widget-empty">Zprávy se nepodařilo načíst.</div>';
+    }
+  }
+
+  function renderMessages(container, messages) {
+    container.innerHTML = messages.map((m) => `
+      <div class="bubble ${m.mine ? 'bubble-mine' : 'bubble-theirs'}">
+        ${m.image_url ? `<img class="bubble-image" src="${m.image_url}" alt="">` : ""}
+        ${m.gif_url ? `<img class="bubble-gif" src="${m.gif_url}" alt="">` : ""}
+        ${m.content ? m.content.replace(/</g, "&lt;") : ""}
+      </div>
+    `).join("");
+    container.scrollTop = container.scrollHeight;
+  }
+
+  async function openThread(username) {
+    stopPolling();
+    currentUsername = username;
+    title.textContent = "…";
+    backBtn.style.display = "";
+    body.innerHTML = '<div class="chat-widget-loading">Načítám…</div>';
+
+    try {
+      const url = window.PIPLY_WIDGET_THREAD_URL_BASE.replace("__USER__", username);
+      const res = await fetch(url);
+      const data = await res.json();
+      if (data.error) {
+        body.innerHTML = '<div class="chat-widget-empty">Konverzaci se nepodařilo načíst.</div>';
+        return;
+      }
+      title.textContent = data.other.display_name;
+
+      body.innerHTML = `
+        <div class="chat-widget-messages" id="chat-widget-messages"></div>
+        ${data.can_message ? `
+          <form class="chat-widget-input-row" id="chat-widget-form">
+            <input type="text" id="chat-widget-input" placeholder="Napiš zprávu…" maxlength="2000" autocomplete="off">
+            <button type="submit" class="btn btn-sm">Odeslat</button>
+          </form>
+        ` : `<div class="chat-widget-empty">Tento uživatel nepřijímá zprávy.</div>`}
+      `;
+      const msgContainer = document.getElementById("chat-widget-messages");
+      renderMessages(msgContainer, data.messages);
+      let lastId = data.messages.length ? data.messages[data.messages.length - 1].id : 0;
+
+      const form = document.getElementById("chat-widget-form");
+      if (form) {
+        form.addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const input = document.getElementById("chat-widget-input");
+          const text = input.value.trim();
+          if (!text) return;
+          input.value = "";
+          try {
+            const sendUrl = window.PIPLY_WIDGET_SEND_URL_BASE.replace("__USER__", username);
+            const fd = new FormData();
+            fd.append("content", text);
+            const res2 = await fetch(sendUrl, { method: "POST", body: fd });
+            const data2 = await res2.json();
+            if (data2.message) {
+              lastId = data2.message.id;
+              const cont = document.getElementById("chat-widget-messages");
+              if (cont) {
+                cont.innerHTML += `<div class="bubble bubble-mine">${(data2.message.content || "").replace(/</g, "&lt;")}</div>`;
+                cont.scrollTop = cont.scrollHeight;
+              }
+            }
+          } catch (err) {
+            // ticho
+          }
+        });
+      }
+
+      pollTimer = setInterval(async () => {
+        if (currentUsername !== username) return;
+        try {
+          const pollUrl = window.PIPLY_WIDGET_POLL_URL_BASE.replace("__USER__", username) + `?after_id=${lastId}`;
+          const res3 = await fetch(pollUrl);
+          const data3 = await res3.json();
+          if (data3.messages && data3.messages.length) {
+            const cont = document.getElementById("chat-widget-messages");
+            data3.messages.forEach((m) => {
+              lastId = Math.max(lastId, m.id);
+              if (cont) {
+                cont.innerHTML += `
+                  <div class="bubble ${m.mine ? 'bubble-mine' : 'bubble-theirs'}">
+                    ${m.image_url ? `<img class="bubble-image" src="${m.image_url}" alt="">` : ""}
+                    ${m.gif_url ? `<img class="bubble-gif" src="${m.gif_url}" alt="">` : ""}
+                    ${m.content ? m.content.replace(/</g, "&lt;") : ""}
+                  </div>`;
+              }
+            });
+            if (cont) cont.scrollTop = cont.scrollHeight;
+          }
+        } catch (err) {
+          // ticho
+        }
+      }, 3000);
+    } catch (err) {
+      body.innerHTML = '<div class="chat-widget-empty">Konverzaci se nepodařilo načíst.</div>';
+    }
+  }
+})();
+
+// --- Plynulejsi prechody mezi strankami (fade, jen progresivni vylepseni) ---
+
+(function initSmoothNav() {
+  document.documentElement.classList.add("piply-loaded");
+
+  document.addEventListener("click", (e) => {
+    const link = e.target.closest("a");
+    if (!link) return;
+    if (link.target === "_blank" || link.hasAttribute("download")) return;
+    if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+    const href = link.getAttribute("href");
+    if (!href || href.startsWith("#") || href.startsWith("http") || href.startsWith("mailto:")) return;
+    if (link.closest("#chat-widget")) return;
+
+    if (!document.startViewTransition) {
+      e.preventDefault();
+      document.documentElement.classList.add("piply-fading");
+      setTimeout(() => { window.location.href = href; }, 90);
+    }
+  });
 })();

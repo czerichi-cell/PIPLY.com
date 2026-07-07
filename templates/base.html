@@ -83,6 +83,31 @@
     {% block content %}{% endblock %}
   </main>
 </div>
+
+<div class="toast-container" id="toast-container"></div>
+
+<div class="chat-widget" id="chat-widget">
+  <div class="chat-widget-panel" id="chat-widget-panel" style="display:none">
+    <div class="chat-widget-header" id="chat-widget-header">
+      <button type="button" class="chat-widget-back" id="chat-widget-back" style="display:none" title="Zpět">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+      </button>
+      <span id="chat-widget-title">Zprávy</span>
+      <a href="{{ url_for('messages_bp.inbox') }}" class="chat-widget-expand" title="Otevřít v plné velikosti">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 3H5a2 2 0 00-2 2v4M15 3h4a2 2 0 012 2v4M9 21H5a2 2 0 01-2-2v-4M15 21h4a2 2 0 002-2v-4"/></svg>
+      </a>
+      <button type="button" class="chat-widget-close" id="chat-widget-close" title="Zavřít">&times;</button>
+    </div>
+    <div class="chat-widget-body" id="chat-widget-body">
+      <div class="chat-widget-loading">Načítám…</div>
+    </div>
+  </div>
+  <button type="button" class="chat-widget-bubble" id="chat-widget-bubble">
+    <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v13H7l-3 3z"/></svg>
+    <span class="badge" id="chat-widget-badge" style="display:none"></span>
+  </button>
+</div>
+
 {% else %}
   {% with messages = get_flashed_messages(with_categories=true) %}
     {% if messages %}
@@ -106,6 +131,14 @@
   </div>
 </div>
 
+<script>
+  window.PIPLY_LOGGED_IN = {{ 'true' if current_user else 'false' }};
+  window.PIPLY_WIDGET_CONV_LIST_URL = {{ url_for('messages_bp.inbox_fragment')|tojson if current_user else 'null' }};
+  window.PIPLY_WIDGET_THREAD_URL_BASE = {{ (url_for('messages_bp.widget_thread', username='__USER__'))|tojson if current_user else 'null' }};
+  window.PIPLY_WIDGET_SEND_URL_BASE = {{ (url_for('messages_bp.thread', username='__USER__'))|tojson if current_user else 'null' }};
+  window.PIPLY_WIDGET_POLL_URL_BASE = {{ (url_for('messages_bp.poll', username='__USER__'))|tojson if current_user else 'null' }};
+  window.PIPLY_LIVE_COUNTS_URL = "{{ url_for('live_counts') }}";
+</script>
 <script src="{{ url_for('static', filename='js/app.js') }}"></script>
 {% block scripts %}{% endblock %}
 </body>

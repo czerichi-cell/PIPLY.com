@@ -75,6 +75,46 @@ def inbox():
     return render_template("messages/inbox.html", conversations=conversations)
 
 
+@bp.route("/<username>/widget")
+@login_required
+def widget_thread(username):
+    """Lehka JSON varianta vlakna pro plovouci chat widget (bez plneho page reloadu)."""
+    other = query_one("SELECT * FROM users WHERE username=?", (username,))
+    if other is None:
+        return jsonify({"error": "not_found"}), 404
+
+    me = g.user["id"]
+    if is_blocked(me, other["id"]):
+        return jsonify({"error": "blocked"}), 403
+
+    other_settings = query_one("SELECT * FROM user_settings WHERE user_id=?", (other["id"],))
+    privacy = other_settings["messages_privacy"] if other_settings else "friends"
+    can_message = True
+    if privacy == "nobody":
+        can_message = False
+    elif privacy == "friends" and not are_friends(me, other["id"]):
+        can_message = False
+
+    execute(
+        "UPDATE messages SET read_at = datetime('now') WHERE sender_id=? AND recipient_id=? AND read_at IS NULL",
+        (other["id"], me),
+    )
+    msgs = query_all(
+        """SELECT * FROM messages WHERE (sender_id=? AND recipient_id=?) OR (sender_id=? AND recipient_id=?)
+           ORDER BY created_at ASC LIMIT 50""",
+        (me, other["id"], other["id"], me),
+    )
+    return jsonify({
+        "other": {
+            "username": other["username"],
+            "display_name": other["display_name"] or other["username"],
+            "avatar_url": url_for("static", filename=other["avatar_path"]) if other["avatar_path"] else None,
+        },
+        "can_message": can_message,
+        "messages": [_message_json(m, me) for m in msgs],
+    })
+
+
 @bp.route("/fragment")
 @login_required
 def inbox_fragment():
