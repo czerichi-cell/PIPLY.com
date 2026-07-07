@@ -76,71 +76,113 @@
 
 {% block scripts %}
 {% if has_data %}
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
+<div id="chart-load-error" class="empty-state" style="display:none; border: 1px solid var(--red); margin-bottom: 16px">
+  <p style="color: var(--red)">
+    Grafy se nepodařilo načíst. Nejčastější příčina je AdBlock / Brave Shields / firemní firewall,
+    které blokují knihovnu z CDN. Zkus prosím tuhle stránku dočasně povolit v blokovacím rozšíření,
+    nebo ji otevřít v jiném prohlížeči.
+  </p>
+</div>
 <script>
-const chartData = {{ chart_data|safe }};
-const gridColor = "rgba(255,255,255,0.06)";
-const textColor = "#96968f";
-Chart.defaults.color = textColor;
-Chart.defaults.font.family = "'Inter', system-ui, sans-serif";
-
-new Chart(document.getElementById('equityChart'), {
-  type: 'line',
-  data: {
-    labels: chartData.equity_labels,
-    datasets: [{
-      data: chartData.equity_values,
-      borderColor: '#7ed957',
-      backgroundColor: 'rgba(126,217,87,0.12)',
-      fill: true,
-      tension: 0.25,
-      pointRadius: 0,
-      borderWidth: 2,
-    }]
-  },
-  options: {
-    plugins: { legend: { display: false } },
-    scales: {
-      x: { display: false },
-      y: { grid: { color: gridColor }, ticks: { color: textColor } }
-    }
+  function piplyLoadChartFallback() {
+    const s = document.createElement('script');
+    s.src = "https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js";
+    s.onerror = function () {
+      document.getElementById('chart-load-error').style.display = 'block';
+    };
+    s.onload = piplyRenderCharts;
+    document.head.appendChild(s);
   }
-});
-
-new Chart(document.getElementById('pairChart'), {
-  type: 'bar',
-  data: {
-    labels: chartData.pair_labels,
-    datasets: [{
-      data: chartData.pair_values,
-      backgroundColor: chartData.pair_values.map(v => v >= 0 ? '#7ed957' : '#ff4757'),
-      borderRadius: 4,
-    }]
-  },
-  options: {
-    plugins: { legend: { display: false } },
-    scales: {
-      x: { grid: { display: false } },
-      y: { grid: { color: gridColor } }
-    }
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"
+        onerror="piplyLoadChartFallback()"
+        onload="piplyRenderCharts()"></script>
+<script>
+function piplyRenderCharts() {
+try {
+  if (typeof Chart === "undefined") {
+    document.getElementById('chart-load-error').style.display = 'block';
+    return;
   }
-});
+  if (window._piplyChartsRendered) return; // nevykreslovat 2x, kdyby se sesli oba onload
+  window._piplyChartsRendered = true;
 
-new Chart(document.getElementById('winlossChart'), {
-  type: 'doughnut',
-  data: {
-    labels: ['Výhry', 'Prohry', 'Break-even'],
-    datasets: [{
-      data: chartData.win_loss,
-      backgroundColor: ['#7ed957', '#ff4757', '#4a4a45'],
-      borderColor: '#171717',
-      borderWidth: 2,
-    }]
-  },
-  options: {
-    plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, padding: 14 } } }
+  const chartData = {{ chart_data|safe }};
+    const gridColor = "rgba(255,255,255,0.06)";
+    const textColor = "#96968f";
+    Chart.defaults.color = textColor;
+    Chart.defaults.font.family = "'Inter', system-ui, sans-serif";
+
+    new Chart(document.getElementById('equityChart'), {
+      type: 'line',
+      data: {
+        labels: chartData.equity_labels,
+        datasets: [{
+          data: chartData.equity_values,
+          borderColor: '#7ed957',
+          backgroundColor: 'rgba(126,217,87,0.12)',
+          fill: true,
+          tension: 0.25,
+          pointRadius: 0,
+          borderWidth: 2,
+        }]
+      },
+      options: {
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { display: false },
+          y: { grid: { color: gridColor }, ticks: { color: textColor } }
+        }
+      }
+    });
+
+    new Chart(document.getElementById('pairChart'), {
+      type: 'bar',
+      data: {
+        labels: chartData.pair_labels,
+        datasets: [{
+          data: chartData.pair_values,
+          backgroundColor: chartData.pair_values.map(v => v >= 0 ? '#7ed957' : '#ff4757'),
+          borderRadius: 4,
+        }]
+      },
+      options: {
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { grid: { display: false } },
+          y: { grid: { color: gridColor } }
+        }
+      }
+    });
+
+    new Chart(document.getElementById('winlossChart'), {
+      type: 'doughnut',
+      data: {
+        labels: ['Výhry', 'Prohry', 'Break-even'],
+        datasets: [{
+          data: chartData.win_loss,
+          backgroundColor: ['#7ed957', '#ff4757', '#4a4a45'],
+          borderColor: '#171717',
+          borderWidth: 2,
+        }]
+      },
+      options: {
+        plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, padding: 14 } } }
+      }
+    });
+} catch (err) {
+  console.error("Chyba pri vykreslovani grafu:", err);
+  document.getElementById('chart-load-error').style.display = 'block';
+}
+}
+
+// Pokud ani jeden script tag nestihne spustit onload/onerror (velmi pomale/podivne pripojeni),
+// po 4s zkontrolujeme rucne a ukazeme chybu, at uzivatel nekouka na prazdno bez vysvetleni.
+setTimeout(function () {
+  if (!window._piplyChartsRendered && typeof Chart === "undefined") {
+    document.getElementById('chart-load-error').style.display = 'block';
   }
-});
+}, 4000);
 </script>
 {% endif %}
 {% endblock %}
