@@ -121,6 +121,14 @@ p { margin: 0 0 8px; }
 }
 .user-chip span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .user-chip:hover { background: var(--card); }
+.settings-link {
+  padding: 8px;
+  border-radius: var(--radius-sm);
+  color: var(--text-faint);
+  display: flex;
+}
+.settings-link:hover { background: var(--bg-elevated); color: var(--text); }
+.settings-link svg { width: 17px; height: 17px; }
 .logout-link {
   padding: 8px;
   border-radius: var(--radius-sm);

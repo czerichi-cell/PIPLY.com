@@ -120,6 +120,7 @@ CREATE TABLE IF NOT EXISTS user_settings (
     messages_privacy TEXT CHECK(messages_privacy IN ('everyone','friends','nobody')) DEFAULT 'friends',
     notify_messages INTEGER DEFAULT 1,
     notify_social INTEGER DEFAULT 1,
+    chat_widget_enabled INTEGER DEFAULT 1,
     FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 

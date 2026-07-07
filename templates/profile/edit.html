@@ -61,6 +61,10 @@
       <input type="checkbox" name="notify_social" id="ns" style="width:auto" {{ 'checked' if not settings or settings['notify_social'] }}>
       <label for="ns" style="margin:0">Upozorňovat na lajky, komentáře a žádosti o přátelství</label>
     </div>
+    <div class="field" style="display:flex; align-items:center; gap:8px">
+      <input type="checkbox" name="chat_widget_enabled" id="cw" style="width:auto" {{ 'checked' if not settings or settings['chat_widget_enabled'] }}>
+      <label for="cw" style="margin:0">Zobrazovat plovoucí chat okénko vpravo dole</label>
+    </div>
     <button type="submit" class="btn btn-secondary">Uložit nastavení</button>
   </form>
 </div>

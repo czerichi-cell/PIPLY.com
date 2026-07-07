@@ -27,7 +27,17 @@ def init_db():
     conn = sqlite3.connect(str(DB_PATH))
     conn.executescript(SCHEMA_PATH.read_text(encoding="utf-8"))
     conn.commit()
+    _run_migrations(conn)
+    conn.commit()
     conn.close()
+
+
+def _run_migrations(conn):
+    """Doplni sloupce, ktere pribyly po prvnim nasazeni, do jiz existujici databaze
+    (CREATE TABLE IF NOT EXISTS sloupce k existujici tabulce nedoplni, proto rucni migrace)."""
+    existing_cols = {row[1] for row in conn.execute("PRAGMA table_info(user_settings)").fetchall()}
+    if "chat_widget_enabled" not in existing_cols:
+        conn.execute("ALTER TABLE user_settings ADD COLUMN chat_widget_enabled INTEGER DEFAULT 1")
 
 
 def query_all(sql, params=()):
