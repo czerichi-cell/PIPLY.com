@@ -83,6 +83,7 @@ def dashboard():
     chart_data = {
         "equity_labels": [e["label"] for e in equity_curve],
         "equity_values": [e["equity"] for e in equity_curve],
+        "starting_capital": starting,
         "pair_labels": [p["pair"] for p in pair_stats[:10]],
         "pair_values": [p["pl"] for p in pair_stats[:10]],
         "win_loss": [len(wins), len(losses), n - len(wins) - len(losses)],

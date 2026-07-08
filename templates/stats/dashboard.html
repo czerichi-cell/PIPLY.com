@@ -103,15 +103,35 @@ try {
       type: 'line',
       data: {
         labels: chartData.equity_labels,
-        datasets: [{
-          data: chartData.equity_values,
-          borderColor: '#7ed957',
-          backgroundColor: 'rgba(126,217,87,0.12)',
-          fill: true,
-          tension: 0.25,
-          pointRadius: 0,
-          borderWidth: 2,
-        }]
+        datasets: [
+          {
+            data: chartData.equity_values,
+            borderColor: '#7ed957',
+            backgroundColor: 'rgba(126,217,87,0.12)',
+            segment: {
+              borderColor: (ctx) => {
+                const below = (ctx.p0.parsed.y + ctx.p1.parsed.y) / 2 < chartData.starting_capital;
+                return below ? '#ff4757' : '#7ed957';
+              },
+              backgroundColor: (ctx) => {
+                const below = (ctx.p0.parsed.y + ctx.p1.parsed.y) / 2 < chartData.starting_capital;
+                return below ? 'rgba(255,71,87,0.12)' : 'rgba(126,217,87,0.12)';
+              },
+            },
+            fill: true,
+            tension: 0.25,
+            pointRadius: 0,
+            borderWidth: 2,
+          },
+          {
+            data: chartData.equity_labels.map(() => chartData.starting_capital),
+            borderColor: 'rgba(255,255,255,0.28)',
+            borderDash: [4, 4],
+            borderWidth: 1,
+            pointRadius: 0,
+            fill: false,
+          },
+        ]
       },
       options: {
         plugins: { legend: { display: false } },
