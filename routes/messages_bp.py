@@ -32,6 +32,32 @@ def _giphy_request(endpoint, params):
         return None, str(e)
 
 
+def _invite_json(invite_id):
+    if not invite_id:
+        return None
+    invite = query_one(
+        """SELECT calendar_invites.*, calendar_events.title AS event_title,
+                  calendar_events.event_date, calendar_events.event_time,
+                  calendar_events.notes AS event_notes
+           FROM calendar_invites
+           JOIN calendar_events ON calendar_events.id = calendar_invites.event_id
+           WHERE calendar_invites.id = ?""",
+        (invite_id,),
+    )
+    if not invite:
+        return None
+    return {
+        "id": invite["id"],
+        "status": invite["status"],
+        "title": invite["event_title"],
+        "date": invite["event_date"],
+        "time": invite["event_time"],
+        "notes": invite["event_notes"],
+        "inviter_id": invite["inviter_id"],
+        "invitee_id": invite["invitee_id"],
+    }
+
+
 def _message_json(m, me):
     return {
         "id": m["id"],
@@ -41,6 +67,7 @@ def _message_json(m, me):
         "sender_id": m["sender_id"],
         "created_at": m["created_at"],
         "mine": m["sender_id"] == me,
+        "invite": _invite_json(m["invite_id"]) if "invite_id" in m.keys() and m["invite_id"] else None,
     }
 
 
@@ -201,7 +228,8 @@ def thread(username):
            ORDER BY created_at ASC LIMIT 300""",
         (me, other["id"], other["id"], me),
     )
-    return render_template("messages/thread.html", other=other, messages=msgs, can_message=can_message,
+    return render_template("messages/thread.html", other=other,
+                            messages=[_message_json(m, me) for m in msgs], can_message=can_message,
                             giphy_enabled=bool(_giphy_api_key()))
 
 

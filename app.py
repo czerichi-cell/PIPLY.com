@@ -58,6 +58,7 @@ def create_app():
     from routes.social import bp as social_bp
     from routes.messages_bp import bp as messages_bp
     from routes.notifications import bp as notifications_bp
+    from routes.calendar import bp as calendar_bp
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(profile_bp)
@@ -66,6 +67,7 @@ def create_app():
     app.register_blueprint(social_bp)
     app.register_blueprint(messages_bp)
     app.register_blueprint(notifications_bp)
+    app.register_blueprint(calendar_bp)
 
     @app.route("/")
     def index():

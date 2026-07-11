@@ -41,6 +41,10 @@ def _run_migrations(conn):
     if "notify_sound_enabled" not in existing_cols:
         conn.execute("ALTER TABLE user_settings ADD COLUMN notify_sound_enabled INTEGER DEFAULT 1")
 
+    msg_cols = {row[1] for row in conn.execute("PRAGMA table_info(messages)").fetchall()}
+    if "invite_id" not in msg_cols:
+        conn.execute("ALTER TABLE messages ADD COLUMN invite_id INTEGER")
+
 
 def query_all(sql, params=()):
     db = get_db()

@@ -130,6 +130,64 @@ const PIPLY_EMOJIS = [
 
 // --- Chat: odeslani zpravy (text/obrazek/gif) bez reloadu + polling ---
 
+// --- Sdilene funkce pro vykresleni "pozvanka do kalendare" kartiky v chatu ---
+// (pouzivaji jak plna stranka zprav, tak plovouci chat widget)
+
+function buildInviteCardHTML(invite) {
+  let actionsHtml;
+  if (invite.status === "pending" && invite.invitee_id === window.PIPLY_ME_ID) {
+    actionsHtml = `
+      <div class="invite-card-actions">
+        <button type="button" class="btn btn-sm invite-respond-btn" data-action="accept">Přijmout</button>
+        <button type="button" class="btn btn-ghost btn-sm invite-respond-btn" data-action="decline">Odmítnout</button>
+      </div>`;
+  } else if (invite.status === "pending") {
+    actionsHtml = `<div class="invite-card-status">Čeká na odpověď</div>`;
+  } else if (invite.status === "accepted") {
+    actionsHtml = `<div class="invite-card-status invite-card-status-accepted">✓ Přijato</div>`;
+  } else {
+    actionsHtml = `<div class="invite-card-status invite-card-status-declined">✕ Odmítnuto</div>`;
+  }
+  return `
+    <div class="invite-card" data-invite-id="${invite.id}">
+      <div class="invite-card-header">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+        <span>Pozvánka do kalendáře</span>
+      </div>
+      <div class="invite-card-title">${(invite.title || "").replace(/</g, "&lt;")}</div>
+      <div class="invite-card-meta">${invite.date || ""}${invite.time ? " · " + invite.time : ""}</div>
+      ${invite.notes ? `<div class="invite-card-notes">${invite.notes.replace(/</g, "&lt;")}</div>` : ""}
+      ${actionsHtml}
+    </div>`;
+}
+
+function wireInviteButtons(container) {
+  container.querySelectorAll(".invite-respond-btn").forEach((btn) => {
+    if (btn.dataset.wired) return;
+    btn.dataset.wired = "1";
+    btn.addEventListener("click", async () => {
+      const card = btn.closest(".invite-card");
+      const inviteId = card.dataset.inviteId;
+      const action = btn.dataset.action;
+      btn.disabled = true;
+      try {
+        const fd = new FormData();
+        fd.append("action", action);
+        const res = await fetch(`/calendar/invite/${inviteId}/respond`, { method: "POST", body: fd });
+        const data = await res.json();
+        const actionsDiv = card.querySelector(".invite-card-actions");
+        if (data.status === "accepted") {
+          actionsDiv.outerHTML = `<div class="invite-card-status invite-card-status-accepted">✓ Přijato</div>`;
+        } else if (data.status === "declined") {
+          actionsDiv.outerHTML = `<div class="invite-card-status invite-card-status-declined">✕ Odmítnuto</div>`;
+        }
+      } catch (err) {
+        btn.disabled = false;
+      }
+    });
+  });
+}
+
 (function initChat() {
   const win = document.getElementById("chat-window");
   if (!win) return;
@@ -161,6 +219,7 @@ const PIPLY_EMOJIS = [
     messagesBox.scrollTop = messagesBox.scrollHeight;
   }
   scrollToBottom();
+  wireInviteButtons(messagesBox);
 
   function showError(msg) {
     if (!errorBox) return;
@@ -180,20 +239,24 @@ const PIPLY_EMOJIS = [
     div.className = "bubble " + (m.mine ? "bubble-mine" : "bubble-theirs");
     div.dataset.msgId = m.id;
 
-    if (m.image_url) {
-      const img = document.createElement("img");
-      img.className = "bubble-image";
-      img.src = m.image_url;
-      div.appendChild(img);
-    }
-    if (m.gif_url) {
-      const gif = document.createElement("img");
-      gif.className = "bubble-gif";
-      gif.src = m.gif_url;
-      div.appendChild(gif);
-    }
-    if (m.content) {
-      div.appendChild(document.createTextNode(m.content));
+    if (m.invite) {
+      div.innerHTML = buildInviteCardHTML(m.invite);
+    } else {
+      if (m.image_url) {
+        const img = document.createElement("img");
+        img.className = "bubble-image";
+        img.src = m.image_url;
+        div.appendChild(img);
+      }
+      if (m.gif_url) {
+        const gif = document.createElement("img");
+        gif.className = "bubble-gif";
+        gif.src = m.gif_url;
+        div.appendChild(gif);
+      }
+      if (m.content) {
+        div.appendChild(document.createTextNode(m.content));
+      }
     }
     const time = document.createElement("div");
     time.className = "bubble-time";
@@ -201,6 +264,7 @@ const PIPLY_EMOJIS = [
     div.appendChild(time);
 
     messagesBox.appendChild(div);
+    if (m.invite) wireInviteButtons(div);
     lastId = Math.max(lastId, m.id);
   }
 
@@ -684,15 +748,19 @@ function showToast(title, body, opts) {
     }
   }
 
+  function widgetBubbleHTML(m) {
+    const inner = m.invite
+      ? buildInviteCardHTML(m.invite)
+      : `${m.image_url ? `<img class="bubble-image" src="${m.image_url}" alt="">` : ""}
+         ${m.gif_url ? `<img class="bubble-gif" src="${m.gif_url}" alt="">` : ""}
+         ${m.content ? m.content.replace(/</g, "&lt;") : ""}`;
+    return `<div class="bubble ${m.mine ? 'bubble-mine' : 'bubble-theirs'}" data-msg-id="${m.id}">${inner}</div>`;
+  }
+
   function renderMessages(container, messages) {
-    container.innerHTML = messages.map((m) => `
-      <div class="bubble ${m.mine ? 'bubble-mine' : 'bubble-theirs'}">
-        ${m.image_url ? `<img class="bubble-image" src="${m.image_url}" alt="">` : ""}
-        ${m.gif_url ? `<img class="bubble-gif" src="${m.gif_url}" alt="">` : ""}
-        ${m.content ? m.content.replace(/</g, "&lt;") : ""}
-      </div>
-    `).join("");
+    container.innerHTML = messages.map(widgetBubbleHTML).join("");
     container.scrollTop = container.scrollHeight;
+    wireInviteButtons(container);
   }
 
   async function openThread(username) {
@@ -743,7 +811,7 @@ function showToast(title, body, opts) {
               lastId = data2.message.id;
               const cont = document.getElementById("chat-widget-messages");
               if (cont) {
-                cont.innerHTML += `<div class="bubble bubble-mine">${(data2.message.content || "").replace(/</g, "&lt;")}</div>`;
+                cont.insertAdjacentHTML("beforeend", widgetBubbleHTML(data2.message));
                 cont.scrollTop = cont.scrollHeight;
               }
             }
@@ -764,12 +832,8 @@ function showToast(title, body, opts) {
             data3.messages.forEach((m) => {
               lastId = Math.max(lastId, m.id);
               if (cont) {
-                cont.innerHTML += `
-                  <div class="bubble ${m.mine ? 'bubble-mine' : 'bubble-theirs'}">
-                    ${m.image_url ? `<img class="bubble-image" src="${m.image_url}" alt="">` : ""}
-                    ${m.gif_url ? `<img class="bubble-gif" src="${m.gif_url}" alt="">` : ""}
-                    ${m.content ? m.content.replace(/</g, "&lt;") : ""}
-                  </div>`;
+                cont.insertAdjacentHTML("beforeend", widgetBubbleHTML(m));
+                wireInviteButtons(cont);
               }
             });
             if (cont) cont.scrollTop = cont.scrollHeight;

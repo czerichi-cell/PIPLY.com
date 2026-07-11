@@ -96,10 +96,38 @@ CREATE TABLE IF NOT EXISTS messages (
     content TEXT NOT NULL DEFAULT '',
     image_path TEXT,
     gif_url TEXT,
+    invite_id INTEGER,
     created_at TEXT DEFAULT (datetime('now')),
     read_at TEXT,
     FOREIGN KEY(sender_id) REFERENCES users(id) ON DELETE CASCADE,
-    FOREIGN KEY(recipient_id) REFERENCES users(id) ON DELETE CASCADE
+    FOREIGN KEY(recipient_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY(invite_id) REFERENCES calendar_invites(id) ON DELETE SET NULL
+);
+
+CREATE TABLE IF NOT EXISTS calendar_events (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    title TEXT NOT NULL,
+    notes TEXT,
+    event_date TEXT NOT NULL,
+    event_time TEXT,
+    kind TEXT CHECK(kind IN ('note','task')) DEFAULT 'task',
+    is_done INTEGER DEFAULT 0,
+    created_at TEXT DEFAULT (datetime('now')),
+    FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS calendar_invites (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    event_id INTEGER NOT NULL,
+    inviter_id INTEGER NOT NULL,
+    invitee_id INTEGER NOT NULL,
+    status TEXT CHECK(status IN ('pending','accepted','declined')) DEFAULT 'pending',
+    created_at TEXT DEFAULT (datetime('now')),
+    responded_at TEXT,
+    FOREIGN KEY(event_id) REFERENCES calendar_events(id) ON DELETE CASCADE,
+    FOREIGN KEY(inviter_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY(invitee_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS notifications (

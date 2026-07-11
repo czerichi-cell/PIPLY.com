@@ -1,0 +1,24 @@
+<div class="invite-card" data-invite-id="{{ m['invite']['id'] }}">
+  <div class="invite-card-header">
+    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+    <span>Pozvánka do kalendáře</span>
+  </div>
+  <div class="invite-card-title">{{ m['invite']['title'] }}</div>
+  <div class="invite-card-meta">
+    {{ m['invite']['date'] }}{% if m['invite']['time'] %} · {{ m['invite']['time'] }}{% endif %}
+  </div>
+  {% if m['invite']['notes'] %}<div class="invite-card-notes">{{ m['invite']['notes'] }}</div>{% endif %}
+
+  {% if m['invite']['status'] == 'pending' and m['invite']['invitee_id'] == current_user['id'] %}
+    <div class="invite-card-actions">
+      <button type="button" class="btn btn-sm invite-respond-btn" data-action="accept">Přijmout</button>
+      <button type="button" class="btn btn-ghost btn-sm invite-respond-btn" data-action="decline">Odmítnout</button>
+    </div>
+  {% elif m['invite']['status'] == 'pending' %}
+    <div class="invite-card-status">Čeká na odpověď</div>
+  {% elif m['invite']['status'] == 'accepted' %}
+    <div class="invite-card-status invite-card-status-accepted">✓ Přijato</div>
+  {% else %}
+    <div class="invite-card-status invite-card-status-declined">✕ Odmítnuto</div>
+  {% endif %}
+</div>

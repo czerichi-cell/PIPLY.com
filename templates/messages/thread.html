@@ -14,10 +14,14 @@
 <div class="card chat-window" id="chat-window" data-username="{{ other['username'] }}" data-last-id="{{ messages[-1]['id'] if messages else 0 }}" data-me="{{ current_user['id'] }}">
   <div class="chat-messages" id="chat-messages">
     {% for m in messages %}
-      <div class="bubble {{ 'bubble-mine' if m['sender_id'] == current_user['id'] else 'bubble-theirs' }}">
-        {% if m['image_path'] %}<img class="bubble-image" src="{{ url_for('static', filename=m['image_path']) }}" alt="">{% endif %}
-        {% if m['gif_url'] %}<img class="bubble-gif" src="{{ m['gif_url'] }}" alt="">{% endif %}
-        {% if m['content'] %}{{ m['content'] }}{% endif %}
+      <div class="bubble {{ 'bubble-mine' if m['mine'] else 'bubble-theirs' }}" data-msg-id="{{ m['id'] }}">
+        {% if m['invite'] %}
+          {% include "messages/_invite_card.html" %}
+        {% else %}
+          {% if m['image_url'] %}<img class="bubble-image" src="{{ m['image_url'] }}" alt="">{% endif %}
+          {% if m['gif_url'] %}<img class="bubble-gif" src="{{ m['gif_url'] }}" alt="">{% endif %}
+          {% if m['content'] %}{{ m['content'] }}{% endif %}
+        {% endif %}
         <div class="bubble-time">{{ m['created_at']|dt('%d.%m. %H:%M') }}</div>
       </div>
     {% endfor %}
