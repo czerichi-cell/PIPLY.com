@@ -108,12 +108,12 @@ p { margin: 0 0 8px; }
   padding-top: 12px;
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 2px;
 }
 .user-chip {
-  display: flex; align-items: center; gap: 8px;
+  display: flex; align-items: center; gap: 7px;
   flex: 1;
-  padding: 6px 8px;
+  padding: 6px 6px 6px 4px;
   border-radius: var(--radius-sm);
   font-size: 13.5px;
   font-weight: 500;
@@ -122,21 +122,23 @@ p { margin: 0 0 8px; }
 .user-chip span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .user-chip:hover { background: var(--card); }
 .settings-link {
-  padding: 8px;
+  padding: 6px;
   border-radius: var(--radius-sm);
   color: var(--text-faint);
   display: flex;
+  flex-shrink: 0;
 }
 .settings-link:hover { background: var(--bg-elevated); color: var(--text); }
-.settings-link svg { width: 17px; height: 17px; }
+.settings-link svg { width: 16px; height: 16px; }
 .logout-link {
-  padding: 8px;
+  padding: 6px;
   border-radius: var(--radius-sm);
   color: var(--text-faint);
   display: flex;
+  flex-shrink: 0;
 }
 .logout-link:hover { background: var(--red-dim); color: var(--red); }
-.logout-link svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 1.8; }
+.logout-link svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.8; }
 
 .main {
   flex: 1;
