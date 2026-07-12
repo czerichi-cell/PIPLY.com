@@ -65,6 +65,9 @@ def view_profile(username):
             (them,),
         )
 
+    from routes.challenges import get_user_badges
+    badges = get_user_badges(them)
+
     return render_template(
         "profile/view.html",
         profile_user=profile_user,
@@ -77,6 +80,7 @@ def view_profile(username):
         stats=stats,
         friends_count=friends_count,
         recent_trades=recent_trades,
+        badges=badges,
     )
 
 

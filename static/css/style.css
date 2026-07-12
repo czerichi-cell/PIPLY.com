@@ -695,3 +695,45 @@ html.piply-fading body {
   .calendar-cell { min-height: 64px; padding: 4px; font-size: 11px; }
   .calendar-daylabel { font-size: 10px; }
 }
+
+/* ============ Vyzvy & Obchod (gamifikace) ============ */
+.points-display {
+  font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 15px;
+  color: var(--accent); background: var(--accent-dim); border: 1px solid var(--accent);
+  padding: 6px 12px; border-radius: 999px;
+}
+.points-display span { font-weight: 400; font-size: 11px; color: var(--text-muted); text-transform: uppercase; }
+.badge-points {
+  margin-left: auto; background: var(--accent-dim); color: var(--accent); border: 1px solid var(--accent);
+  font-size: 10.5px; font-weight: 700; padding: 2px 7px; border-radius: 999px;
+}
+
+.challenge-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; }
+.challenge-card {
+  background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 16px; display: flex; flex-direction: column; gap: 10px;
+}
+.challenge-card.is-complete { border-color: var(--accent); }
+.challenge-card.is-claimed { opacity: .6; }
+.challenge-card-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
+.challenge-title { font-weight: 600; font-size: 14.5px; }
+.challenge-points { font-family: 'JetBrains Mono', monospace; color: var(--accent); font-weight: 700; font-size: 13px; flex-shrink: 0; }
+.challenge-desc { font-size: 12.5px; color: var(--text-muted); }
+.challenge-progress-track { height: 6px; border-radius: 999px; background: var(--bg-elevated); overflow: hidden; }
+.challenge-progress-fill { height: 100%; background: var(--accent); border-radius: 999px; transition: width .3s ease; }
+.challenge-bottom { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.challenge-progress-label { font-size: 12px; color: var(--text-faint); font-family: 'JetBrains Mono', monospace; }
+.challenge-status { font-size: 12px; color: var(--text-faint); font-weight: 600; }
+.challenge-status-claimed { color: var(--accent); }
+
+.shop-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 14px; }
+.shop-item {
+  background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 18px; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 6px;
+}
+.shop-item.is-owned { border-color: var(--accent); }
+.shop-item-emoji { font-size: 34px; line-height: 1; margin-bottom: 4px; }
+.shop-item-name { font-weight: 600; font-size: 14px; }
+.shop-item-desc { font-size: 12px; color: var(--text-muted); margin-bottom: 8px; }
+
+.profile-badges { display: flex; gap: 4px; margin-left: 6px; font-size: 15px; }

@@ -6,7 +6,14 @@
   <div style="display:flex; gap:18px; align-items:center; flex-wrap:wrap">
     <img class="avatar avatar-lg" src="{{ url_for('static', filename=profile_user['avatar_path']) if profile_user['avatar_path'] else url_for('static', filename='img/piply-icon.png') }}" alt="">
     <div style="flex:1; min-width:200px">
-      <h1 style="font-size:20px">{{ profile_user['display_name'] or profile_user['username'] }}</h1>
+      <h1 style="font-size:20px; display:flex; align-items:center">
+        {{ profile_user['display_name'] or profile_user['username'] }}
+        {% if badges %}
+          <span class="profile-badges" title="{{ badges|map(attribute='name')|join(', ') }}">
+            {% for b in badges %}{{ b.emoji }}{% endfor %}
+          </span>
+        {% endif %}
+      </h1>
       <div class="muted">@{{ profile_user['username'] }} · {{ friends_count }} přátel</div>
       {% if profile_user['bio'] %}<p style="margin-top:8px">{{ profile_user['bio'] }}</p>{% endif %}
     </div>

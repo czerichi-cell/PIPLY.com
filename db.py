@@ -45,6 +45,10 @@ def _run_migrations(conn):
     if "invite_id" not in msg_cols:
         conn.execute("ALTER TABLE messages ADD COLUMN invite_id INTEGER")
 
+    user_cols = {row[1] for row in conn.execute("PRAGMA table_info(users)").fetchall()}
+    if "points" not in user_cols:
+        conn.execute("ALTER TABLE users ADD COLUMN points INTEGER DEFAULT 0")
+
 
 def query_all(sql, params=()):
     db = get_db()

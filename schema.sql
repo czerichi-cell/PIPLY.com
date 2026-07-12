@@ -9,6 +9,7 @@ CREATE TABLE IF NOT EXISTS users (
     bio TEXT,
     avatar_path TEXT,
     starting_capital REAL DEFAULT 0,
+    points INTEGER DEFAULT 0,
     created_at TEXT DEFAULT (datetime('now'))
 );
 
@@ -128,6 +129,26 @@ CREATE TABLE IF NOT EXISTS calendar_invites (
     FOREIGN KEY(event_id) REFERENCES calendar_events(id) ON DELETE CASCADE,
     FOREIGN KEY(inviter_id) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY(invitee_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS challenge_claims (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    challenge_key TEXT NOT NULL,
+    points_awarded INTEGER NOT NULL,
+    claimed_at TEXT DEFAULT (datetime('now')),
+    UNIQUE(user_id, challenge_key),
+    FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS shop_purchases (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    item_key TEXT NOT NULL,
+    cost_paid INTEGER NOT NULL,
+    purchased_at TEXT DEFAULT (datetime('now')),
+    UNIQUE(user_id, item_key),
+    FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS notifications (

@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}Obchod – Piply{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1>Obchod</h1>
+  <div style="display:flex; align-items:center; gap:12px">
+    <div class="points-display">{{ points }} <span>bodů</span></div>
+    <a href="{{ url_for('challenges_bp.list_challenges') }}" class="btn btn-ghost btn-sm">← Výzvy</a>
+  </div>
+</div>
+
+<p class="muted" style="margin-bottom:16px">Body získáváš plněním výzev. Odznaky, které si koupíš, se zobrazí u tvého jména na profilu.</p>
+
+<div class="shop-grid">
+  {% for it in items %}
+    <div class="shop-item {{ 'is-owned' if it.owned }}">
+      <div class="shop-item-emoji">{{ it.emoji }}</div>
+      <div class="shop-item-name">{{ it.name }}</div>
+      <div class="shop-item-desc">{{ it.desc }}</div>
+      {% if it.owned %}
+        <div class="challenge-status challenge-status-claimed" style="margin-top:auto">✓ Vlastníš</div>
+      {% else %}
+        <form method="post" action="{{ url_for('challenges_bp.buy_item', key=it.key) }}" style="margin-top:auto">
+          <button type="submit" class="btn btn-sm" {{ 'disabled' if points < it.cost }}>Koupit za {{ it.cost }} b.</button>
+        </form>
+      {% endif %}
+    </div>
+  {% endfor %}
+</div>
+{% endblock %}

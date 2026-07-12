@@ -41,14 +41,17 @@ def create_app():
             )
             widget_enabled = settings["chat_widget_enabled"] if settings and settings["chat_widget_enabled"] is not None else 1
             sound_enabled = settings["notify_sound_enabled"] if settings and settings["notify_sound_enabled"] is not None else 1
+            user_row = query_one("SELECT points FROM users WHERE id=?", (g.user["id"],))
+            points = user_row["points"] if user_row and user_row["points"] is not None else 0
             return {
                 "current_user": g.user,
                 "notif_count": unread_notification_count(g.user["id"]),
                 "msg_count": unread_message_count(g.user["id"]),
                 "chat_widget_enabled": bool(widget_enabled),
                 "notify_sound_enabled": bool(sound_enabled),
+                "user_points": points,
             }
-        return {"current_user": None, "notif_count": 0, "msg_count": 0, "chat_widget_enabled": False, "notify_sound_enabled": False}
+        return {"current_user": None, "notif_count": 0, "msg_count": 0, "chat_widget_enabled": False, "notify_sound_enabled": False, "user_points": 0}
 
     # --- Registrace blueprintu ---
     from routes.auth import bp as auth_bp
@@ -59,6 +62,7 @@ def create_app():
     from routes.messages_bp import bp as messages_bp
     from routes.notifications import bp as notifications_bp
     from routes.calendar import bp as calendar_bp
+    from routes.challenges import bp as challenges_bp
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(profile_bp)
@@ -68,6 +72,7 @@ def create_app():
     app.register_blueprint(messages_bp)
     app.register_blueprint(notifications_bp)
     app.register_blueprint(calendar_bp)
+    app.register_blueprint(challenges_bp)
 
     @app.route("/")
     def index():

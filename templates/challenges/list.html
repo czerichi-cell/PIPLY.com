@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}Výzvy – Piply{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1>Výzvy</h1>
+  <div style="display:flex; align-items:center; gap:12px">
+    <div class="points-display">{{ points }} <span>bodů</span></div>
+    <a href="{{ url_for('challenges_bp.shop') }}" class="btn btn-sm">Obchod →</a>
+  </div>
+</div>
+
+<div class="challenge-grid">
+  {% for ch in challenges %}
+    <div class="challenge-card {{ 'is-claimed' if ch.claimed else ('is-complete' if ch.complete) }}">
+      <div class="challenge-card-top">
+        <div class="challenge-title">{{ ch.title }}</div>
+        <div class="challenge-points">+{{ ch.points }} b.</div>
+      </div>
+      <div class="challenge-desc">{{ ch.desc }}</div>
+      <div class="challenge-progress-track">
+        <div class="challenge-progress-fill" style="width: {{ (ch.progress / ch.target * 100) if ch.target else 100 }}%"></div>
+      </div>
+      <div class="challenge-bottom">
+        <span class="challenge-progress-label">
+          {% if ch.stat == 'winrate' %}{{ ch.progress }}% / {{ ch.target }}%
+          {% elif ch.stat == 'has_capital' %}{{ 'Hotovo' if ch.progress else 'Nesplněno' }}
+          {% else %}{{ ch.progress }} / {{ ch.target }}
+          {% endif %}
+        </span>
+        {% if ch.claimed %}
+          <span class="challenge-status challenge-status-claimed">✓ Vyzvednuto</span>
+        {% elif ch.complete %}
+          <form method="post" action="{{ url_for('challenges_bp.claim_challenge', key=ch.key) }}">
+            <button type="submit" class="btn btn-sm">Vyzvednout</button>
+          </form>
+        {% else %}
+          <span class="challenge-status">Probíhá</span>
+        {% endif %}
+      </div>
+    </div>
+  {% endfor %}
+</div>
+{% endblock %}
