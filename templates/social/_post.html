@@ -5,13 +5,15 @@
     </a>
     <div>
       <div class="who">
-        <a href="{{ url_for('profile.view_profile', username=post['username']) }}">{{ post['display_name'] or post['username'] }}</a>
+        <a href="{{ url_for('profile.view_profile', username=post['username']) }}" class="{{ 'admin-name' if post['is_admin'] }}">
+          {{ post['display_name'] or post['username'] }}{% if post['is_admin'] %} <span class="admin-shield" title="Admin">🛡️</span>{% endif %}
+        </a>
       </div>
       <div class="when">{{ post['created_at']|dt }}
         {% if post['visibility'] == 'only_me' %}· jen já{% elif post['visibility'] == 'friends' %}· přátelé{% endif %}
       </div>
     </div>
-    {% if post['user_id'] == current_user['id'] %}
+    {% if post['user_id'] == current_user['id'] or current_user['is_admin'] %}
     <form method="post" action="{{ url_for('social.delete_post', post_id=post['id']) }}" style="margin-left:auto" data-confirm="Opravdu smazat tenhle příspěvek?">
       <button type="submit" class="btn btn-ghost btn-sm">Smazat</button>
     </form>
@@ -36,7 +38,15 @@
 
   <div class="comments-list" id="comments-{{ post['id'] }}" style="display:none">
     {% for c in post_comments.get(post['id'], []) %}
-      <div class="comment"><b>{{ c['display_name'] or c['username'] }}</b> {{ c['content'] }}</div>
+      <div class="comment">
+        <span class="{{ 'admin-name' if c['is_admin'] }}"><b>{{ c['display_name'] or c['username'] }}</b>{% if c['is_admin'] %} <span class="admin-shield" title="Admin">🛡️</span>{% endif %}</span>
+        {{ c['content'] }}
+        {% if c['user_id'] == current_user['id'] or current_user['is_admin'] %}
+        <form method="post" action="{{ url_for('social.delete_comment', comment_id=c['id']) }}" style="display:inline" data-confirm="Smazat tenhle komentář?">
+          <button type="submit" class="comment-delete-btn" title="Smazat">&times;</button>
+        </form>
+        {% endif %}
+      </div>
     {% endfor %}
     <form class="comment-form" method="post" action="{{ url_for('social.comment_post', post_id=post['id']) }}">
       <input type="text" name="content" placeholder="Napiš komentář…" required maxlength="500">

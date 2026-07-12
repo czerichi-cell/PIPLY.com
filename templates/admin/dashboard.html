@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block title %}Admin – Piply{% endblock %}
+{% block content %}
+<div class="page-header"><h1>Admin panel</h1></div>
+
+<div class="admin-stats-row">
+  <div class="card admin-stat"><div class="admin-stat-num">{{ stats.users }}</div><div class="muted">Uživatelů</div></div>
+  <div class="card admin-stat"><div class="admin-stat-num">{{ stats.posts }}</div><div class="muted">Příspěvků</div></div>
+  <div class="card admin-stat"><div class="admin-stat-num">{{ stats.trades }}</div><div class="muted">Obchodů</div></div>
+  <div class="card admin-stat"><div class="admin-stat-num">{{ stats.messages }}</div><div class="muted">Zpráv</div></div>
+</div>
+
+<div class="card">
+  <div class="card-title">Uživatelé</div>
+  <div class="table-wrap">
+  <table>
+    <tr><th>Uživatel</th><th>Email</th><th>Registrace</th><th>Admin</th><th></th></tr>
+    {% for u in users %}
+      <tr>
+        <td>
+          <a href="{{ url_for('profile.view_profile', username=u['username']) }}" class="{{ 'admin-name' if u['is_admin'] }}">
+            {{ u['display_name'] or u['username'] }}{% if u['is_admin'] %} 🛡️{% endif %}
+          </a>
+          <span class="muted">@{{ u['username'] }}</span>
+        </td>
+        <td class="muted">{{ u['email'] or '—' }}</td>
+        <td class="muted">{{ u['created_at']|dt('%d.%m.%Y') }}</td>
+        <td>{{ 'Ano' if u['is_admin'] else 'Ne' }}</td>
+        <td>
+          {% if u['id'] != current_user['id'] %}
+          <form method="post" action="{{ url_for('admin_bp.toggle_admin', user_id=u['id']) }}"
+                data-confirm="{{ 'Odebrat admin práva uživateli ' ~ (u['display_name'] or u['username']) ~ '?' if u['is_admin'] else 'Udělit admin práva uživateli ' ~ (u['display_name'] or u['username']) ~ '?' }}">
+            <button type="submit" class="btn btn-ghost btn-sm">{{ 'Odebrat admina' if u['is_admin'] else 'Udělit admina' }}</button>
+          </form>
+          {% endif %}
+        </td>
+      </tr>
+    {% endfor %}
+  </table>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-title">Poslední příspěvky</div>
+  {% for p in recent_posts %}
+    <div class="admin-post-row">
+      <div>
+        <b>{{ p['display_name'] or p['username'] }}</b>
+        <span class="muted">{{ p['created_at']|dt('%d.%m. %H:%M') }}</span>
+        <div class="muted" style="max-width:500px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap">{{ p['content'] or '(bez textu)' }}</div>
+      </div>
+      <form method="post" action="{{ url_for('admin_bp.delete_post', post_id=p['id']) }}" data-confirm="Smazat tento příspěvek?">
+        <button type="submit" class="btn btn-ghost btn-sm">Smazat</button>
+      </form>
+    </div>
+  {% endfor %}
+</div>
+{% endblock %}

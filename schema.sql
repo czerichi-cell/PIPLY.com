@@ -10,6 +10,7 @@ CREATE TABLE IF NOT EXISTS users (
     avatar_path TEXT,
     starting_capital REAL DEFAULT 0,
     points INTEGER DEFAULT 0,
+    is_admin INTEGER DEFAULT 0,
     created_at TEXT DEFAULT (datetime('now'))
 );
 

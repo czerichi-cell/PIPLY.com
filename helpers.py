@@ -30,6 +30,19 @@ def login_required(view):
     return wrapped
 
 
+def admin_required(view):
+    @wraps(view)
+    def wrapped(*args, **kwargs):
+        if g.user is None:
+            flash("Nejdriv se prosim prihlas.", "error")
+            return redirect(url_for("auth.login", next=request.path))
+        if not g.user["is_admin"]:
+            flash("Na tuhle stránku nemáš oprávnění.", "error")
+            return redirect(url_for("social.feed"))
+        return view(*args, **kwargs)
+    return wrapped
+
+
 def current_user():
     return g.user
 
@@ -116,7 +129,7 @@ def comments_for_posts(post_ids):
         return {}
     placeholders = ",".join("?" * len(post_ids))
     rows = query_all(
-        f"""SELECT comments.*, users.username, users.display_name
+        f"""SELECT comments.*, users.username, users.display_name, users.is_admin
             FROM comments JOIN users ON users.id = comments.user_id
             WHERE post_id IN ({placeholders}) ORDER BY comments.created_at ASC""",
         post_ids,

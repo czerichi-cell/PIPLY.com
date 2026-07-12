@@ -48,6 +48,8 @@ def _run_migrations(conn):
     user_cols = {row[1] for row in conn.execute("PRAGMA table_info(users)").fetchall()}
     if "points" not in user_cols:
         conn.execute("ALTER TABLE users ADD COLUMN points INTEGER DEFAULT 0")
+    if "is_admin" not in user_cols:
+        conn.execute("ALTER TABLE users ADD COLUMN is_admin INTEGER DEFAULT 0")
 
 
 def query_all(sql, params=()):

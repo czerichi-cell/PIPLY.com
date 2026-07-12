@@ -16,7 +16,7 @@ def feed():
     fids = friend_ids(me) + [me]
     placeholders = ",".join("?" * len(fids))
     posts = query_all(
-        f"""SELECT posts.*, users.username, users.display_name, users.avatar_path,
+        f"""SELECT posts.*, users.username, users.display_name, users.avatar_path, users.is_admin,
                    (SELECT COUNT(*) FROM likes WHERE likes.post_id = posts.id) AS like_count,
                    (SELECT COUNT(*) FROM comments WHERE comments.post_id = posts.id) AS comment_count,
                    (SELECT COUNT(*) FROM likes WHERE likes.post_id = posts.id AND likes.user_id = ?) AS liked_by_me
@@ -62,7 +62,7 @@ def feed_fragment():
     fids = friend_ids(me) + [me]
     placeholders = ",".join("?" * len(fids))
     posts = query_all(
-        f"""SELECT posts.*, users.username, users.display_name, users.avatar_path,
+        f"""SELECT posts.*, users.username, users.display_name, users.avatar_path, users.is_admin,
                    (SELECT COUNT(*) FROM likes WHERE likes.post_id = posts.id) AS like_count,
                    (SELECT COUNT(*) FROM comments WHERE comments.post_id = posts.id) AS comment_count,
                    (SELECT COUNT(*) FROM likes WHERE likes.post_id = posts.id AND likes.user_id = ?) AS liked_by_me
@@ -103,8 +103,30 @@ def new_post():
 @bp.route("/post/<int:post_id>/delete", methods=["POST"])
 @login_required
 def delete_post(post_id):
-    execute("DELETE FROM posts WHERE id=? AND user_id=?", (post_id, g.user["id"]))
+    post = query_one("SELECT * FROM posts WHERE id=?", (post_id,))
+    if post is None:
+        flash("Příspěvek neexistuje.", "error")
+        return redirect(request.referrer or url_for("social.feed"))
+    if post["user_id"] != g.user["id"] and not g.user["is_admin"]:
+        flash("Na smazání tohoto příspěvku nemáš oprávnění.", "error")
+        return redirect(request.referrer or url_for("social.feed"))
+    execute("DELETE FROM posts WHERE id=?", (post_id,))
     flash("Příspěvek smazán.", "success")
+    return redirect(request.referrer or url_for("social.feed"))
+
+
+@bp.route("/comment/<int:comment_id>/delete", methods=["POST"])
+@login_required
+def delete_comment(comment_id):
+    comment = query_one("SELECT * FROM comments WHERE id=?", (comment_id,))
+    if comment is None:
+        flash("Komentář neexistuje.", "error")
+        return redirect(request.referrer or url_for("social.feed"))
+    if comment["user_id"] != g.user["id"] and not g.user["is_admin"]:
+        flash("Na smazání tohoto komentáře nemáš oprávnění.", "error")
+        return redirect(request.referrer or url_for("social.feed"))
+    execute("DELETE FROM comments WHERE id=?", (comment_id,))
+    flash("Komentář smazán.", "success")
     return redirect(request.referrer or url_for("social.feed"))
 
 

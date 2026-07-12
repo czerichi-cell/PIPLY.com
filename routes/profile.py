@@ -45,7 +45,7 @@ def view_profile(username):
         visibility_clause = "visibility = 'public'"
 
     posts = query_all(
-        f"""SELECT posts.*, users.username, users.display_name, users.avatar_path,
+        f"""SELECT posts.*, users.username, users.display_name, users.avatar_path, users.is_admin,
                    (SELECT COUNT(*) FROM likes WHERE likes.post_id = posts.id) AS like_count,
                    (SELECT COUNT(*) FROM comments WHERE comments.post_id = posts.id) AS comment_count,
                    (SELECT COUNT(*) FROM likes WHERE likes.post_id = posts.id AND likes.user_id = ?) AS liked_by_me

@@ -6,8 +6,9 @@
   <div style="display:flex; gap:18px; align-items:center; flex-wrap:wrap">
     <img class="avatar avatar-lg" src="{{ url_for('static', filename=profile_user['avatar_path']) if profile_user['avatar_path'] else url_for('static', filename='img/piply-icon.png') }}" alt="">
     <div style="flex:1; min-width:200px">
-      <h1 style="font-size:20px; display:flex; align-items:center">
+      <h1 style="font-size:20px; display:flex; align-items:center" class="{{ 'admin-name' if profile_user['is_admin'] }}">
         {{ profile_user['display_name'] or profile_user['username'] }}
+        {% if profile_user['is_admin'] %}<span class="admin-shield" title="Admin">🛡️</span>{% endif %}
         {% if badges %}
           <span class="profile-badges" title="{{ badges|map(attribute='name')|join(', ') }}">
             {% for b in badges %}{{ b.emoji }}{% endfor %}

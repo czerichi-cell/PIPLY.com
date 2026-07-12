@@ -737,3 +737,28 @@ html.piply-fading body {
 .shop-item-desc { font-size: 12px; color: var(--text-muted); margin-bottom: 8px; }
 
 .profile-badges { display: flex; gap: 4px; margin-left: 6px; font-size: 15px; }
+
+/* ============ Admin ============ */
+.admin-name {
+  background: linear-gradient(135deg, #f5d76e, #d4af37 40%, #f9e79f 60%, #b8860b);
+  background-size: 200% auto;
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+  font-weight: 700;
+  animation: admin-shimmer 4s linear infinite;
+}
+@keyframes admin-shimmer { to { background-position: 200% center; } }
+.admin-shield { font-size: 13px; filter: drop-shadow(0 0 2px rgba(212,175,55,0.6)); -webkit-text-fill-color: initial; }
+
+.admin-stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px,1fr)); gap: 12px; margin-bottom: 16px; }
+.admin-stat { text-align: center; padding: 18px 12px; }
+.admin-stat-num { font-family: 'JetBrains Mono', monospace; font-size: 26px; font-weight: 700; color: var(--accent); }
+.admin-post-row {
+  display: flex; justify-content: space-between; align-items: center; gap: 12px;
+  padding: 10px 0; border-bottom: 1px solid var(--border);
+}
+.admin-post-row:last-child { border-bottom: none; }
+.comment-delete-btn {
+  background: none; border: none; color: var(--text-faint); cursor: pointer;
+  font-size: 15px; line-height: 1; margin-left: 6px; padding: 0 4px;
+}
+.comment-delete-btn:hover { color: var(--red); }
