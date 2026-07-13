@@ -767,6 +767,6 @@ html.piply-fading body {
 
 /* ============ Novinky (FinancialJuice widget) ============ */
 .news-widget-card {
-  background: #1e222d; border: 1px solid var(--border); border-radius: var(--radius);
+  background: #000000; border: 1px solid var(--border); border-radius: var(--radius);
   padding: 4px; overflow: hidden;
 }
