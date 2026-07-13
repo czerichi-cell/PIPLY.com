@@ -764,3 +764,9 @@ html.piply-fading body {
   font-size: 15px; line-height: 1; margin-left: 6px; padding: 0 4px;
 }
 .comment-delete-btn:hover { color: var(--red); }
+
+/* ============ Novinky (FinancialJuice widget) ============ */
+.news-widget-card {
+  background: #1e222d; border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 4px; overflow: hidden;
+}

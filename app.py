@@ -64,6 +64,7 @@ def create_app():
     from routes.calendar import bp as calendar_bp
     from routes.challenges import bp as challenges_bp
     from routes.admin import bp as admin_bp
+    from routes.news import bp as news_bp
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(profile_bp)
@@ -75,6 +76,7 @@ def create_app():
     app.register_blueprint(calendar_bp)
     app.register_blueprint(challenges_bp)
     app.register_blueprint(admin_bp)
+    app.register_blueprint(news_bp)
 
     @app.route("/")
     def index():

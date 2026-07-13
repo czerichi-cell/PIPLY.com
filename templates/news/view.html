@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block title %}Novinky – Piply{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1>Novinky</h1>
+</div>
+<p class="muted" style="margin-bottom:14px">Breaking news v reálném čase – zdroj: FinancialJuice. Na novou zprávu tě appka upozorní i toastem v pravém horním rohu.</p>
+
+<div class="news-widget-card">
+  <!-- FinancialJuice Widget-->
+  <div id="financialjuice-news-widget-container"></div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script type="text/javascript">
+  var jo = document.createElement("script");
+  jo.type = "text/javascript";
+  jo.id = "FJ-Widgets";
+  var r = Math.floor(Math.random() * (9999 - 0 + 1) + 0);
+  jo.src = "https://feed.financialjuice.com/widgets/widgets.js?r=" + r + "";
+  jo.onload = function () {
+    var options = {};
+    options.container = "financialjuice-news-widget-container";
+    options.mode = "Dark";
+    options.width = "100%";
+    options.height = "700px";
+    options.backColor = "1e222d";
+    options.fontColor = "b2b5be";
+    options.widgetType = "NEWS";
+    new window.FJWidgets.createWidget(options);
+  };
+  document.getElementsByTagName("head")[0].appendChild(jo);
+
+  // --- Toast + zvuk na nove breaking news ---
+  // Widget nema oficialni "nova zprava" udalost, takze sledujeme DOM kontejneru
+  // pres MutationObserver. Prvnich pár vterin po nacteni jen zaznamename existujici
+  // zpravy (initial batch), teprve pak zacneme toastovat na skutecne nove polozky.
+  (function watchFinancialJuiceNews() {
+    var container = document.getElementById("financialjuice-news-widget-container");
+    if (!container) return;
+
+    var seen = new Set();
+    var readyForToasts = false;
+
+    var observer = new MutationObserver(function (mutations) {
+      mutations.forEach(function (m) {
+        m.addedNodes.forEach(function (node) {
+          if (node.nodeType !== 1) return;
+          var text = (node.textContent || "").trim().replace(/\s+/g, " ");
+          if (!text || text.length < 6 || seen.has(text)) return;
+          seen.add(text);
+          if (readyForToasts) {
+            showToast("Breaking News", text.slice(0, 140));
+            playNotificationSound();
+          }
+        });
+      });
+    });
+
+    observer.observe(container, { childList: true, subtree: true });
+    setTimeout(function () { readyForToasts = true; }, 4000);
+  })();
+</script>
+{% endblock %}
