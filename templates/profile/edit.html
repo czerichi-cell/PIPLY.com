@@ -38,6 +38,37 @@
       <label>Počáteční kapitál (pro equity křivku ve statistikách)</label>
       <input type="text" name="starting_capital" value="{{ current_user['starting_capital'] }}">
     </div>
+
+    <div class="field">
+      <label>Banner profilu</label>
+      {% if current_user['banner_path'] or current_user['selected_banner_key'] %}
+        <div class="profile-banner-current-preview">
+          {% if current_user['banner_path'] %}
+            <img src="{{ url_for('static', filename=current_user['banner_path']) }}" alt="">
+          {% else %}
+            {% for b in owned_banners %}
+              {% if b['item_key'] == current_user['selected_banner_key'] %}
+                <img src="{{ url_for('static', filename=b['image_path']) }}" alt="">
+              {% endif %}
+            {% endfor %}
+          {% endif %}
+        </div>
+      {% endif %}
+      {% if owned_banners %}
+        <select name="banner_key" style="margin-bottom:8px">
+          <option value="">— nechat beze změny —</option>
+          <option value="__none__">Žádný banner</option>
+          {% for b in owned_banners %}
+            <option value="{{ b['item_key'] }}" {{ 'selected' if current_user['selected_banner_key'] == b['item_key'] }}>{{ b['name'] }}</option>
+          {% endfor %}
+        </select>
+      {% else %}
+        <p class="muted" style="margin-bottom:8px">Zatím nevlastníš žádný banner z <a href="{{ url_for('challenges_bp.shop') }}">obchodu</a> – ale klidně nahraj vlastní obrázek:</p>
+      {% endif %}
+      <input type="file" name="banner" accept="image/*">
+      <p class="muted" style="margin-top:6px">Doporučený rozměr vlastního banneru: 1200×300 px (poměr stran 4:1).</p>
+    </div>
+
     <button type="submit" class="btn">Uložit profil</button>
   </form>
 </div>

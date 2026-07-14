@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% block title %}Správa obchodu – Piply{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1>Správa obchodu</h1>
+  <a href="{{ url_for('admin_bp.dashboard') }}" class="btn btn-ghost btn-sm">← Admin panel</a>
+</div>
+
+<div class="card">
+  <div class="card-title">Přidat novou položku</div>
+  <form method="post" action="{{ url_for('admin_bp.new_shop_item') }}" enctype="multipart/form-data">
+    <div class="field-row">
+      <div class="field">
+        <label>Klíč (unikátní, bez mezer)</label>
+        <input type="text" name="item_key" placeholder="napr. badge_legend" required>
+      </div>
+      <div class="field">
+        <label>Typ</label>
+        <select name="kind">
+          <option value="badge">Odznak (u jména)</option>
+          <option value="banner">Banner (pozadí profilu)</option>
+        </select>
+      </div>
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label>Název</label>
+        <input type="text" name="name" required maxlength="60">
+      </div>
+      <div class="field" style="max-width:140px">
+        <label>Cena (body)</label>
+        <input type="number" name="cost" min="1" value="50" required>
+      </div>
+    </div>
+    <div class="field">
+      <label>Popis</label>
+      <input type="text" name="description" maxlength="140">
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label>Emoji (jen pro odznaky – pokud nenahráváš vlastní obrázek)</label>
+        <input type="text" name="emoji" placeholder="🚀" maxlength="8">
+      </div>
+      <div class="field">
+        <label>Vlastní obrázek (volitelně, přepíše emoji)</label>
+        <input type="file" name="image" accept="image/*">
+      </div>
+    </div>
+    <p class="muted" style="margin-bottom:10px">
+      Doporučené rozměry: <b>odznak</b> 256×256 px, PNG s průhledným pozadím · <b>banner</b> 1200×300 px (poměr stran 4:1), JPG nebo PNG.
+    </p>
+    <button type="submit" class="btn">Přidat do obchodu</button>
+  </form>
+</div>
+
+<div class="card">
+  <div class="card-title">Existující položky</div>
+  <div class="table-wrap">
+  <table>
+    <tr><th>Náhled</th><th>Název</th><th>Typ</th><th>Cena</th><th>Aktivní</th><th></th></tr>
+    {% for it in items %}
+      <tr>
+        <td>
+          {% if it['image_path'] %}
+            <img src="{{ url_for('static', filename=it['image_path']) }}" style="height:32px; {{ 'width:auto' if it['kind']=='badge' else 'width:64px; object-fit:cover; border-radius:4px' }}">
+          {% else %}
+            <span style="font-size:20px">{{ it['emoji'] }}</span>
+          {% endif %}
+        </td>
+        <td>{{ it['name'] }} <span class="muted">({{ it['item_key'] }})</span></td>
+        <td class="muted">{{ 'Odznak' if it['kind']=='badge' else 'Banner' }}</td>
+        <td>{{ it['cost'] }} b.</td>
+        <td>{{ 'Ano' if it['is_active'] else 'Ne' }}</td>
+        <td style="display:flex; gap:6px">
+          <form method="post" action="{{ url_for('admin_bp.toggle_shop_item', item_id=it['id']) }}">
+            <button type="submit" class="btn btn-ghost btn-sm">{{ 'Deaktivovat' if it['is_active'] else 'Aktivovat' }}</button>
+          </form>
+          <form method="post" action="{{ url_for('admin_bp.delete_shop_item', item_id=it['id']) }}" data-confirm="Opravdu smazat tuto položku z obchodu?">
+            <button type="submit" class="btn btn-ghost btn-sm">Smazat</button>
+          </form>
+        </td>
+      </tr>
+    {% endfor %}
+  </table>
+  </div>
+</div>
+{% endblock %}

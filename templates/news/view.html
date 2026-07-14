@@ -4,11 +4,18 @@
 <div class="page-header">
   <h1>Novinky</h1>
 </div>
-<p class="muted" style="margin-bottom:14px">Breaking news v reálném čase – zdroj: FinancialJuice. Na novou zprávu tě appka upozorní i toastem v pravém horním rohu.</p>
 
-<div class="news-widget-card">
-  <!-- FinancialJuice Widget-->
-  <div id="financialjuice-news-widget-container"></div>
+<div class="card news-card">
+  <div class="news-card-header">
+    <span class="live-dot"></span>
+    <span class="card-title" style="margin:0">Breaking News</span>
+    <span class="muted news-card-source">zdroj: FinancialJuice</span>
+  </div>
+  <p class="muted news-card-desc">Novinky v reálném čase. Na novou zprávu tě appka upozorní i toastem v pravém horním rohu.</p>
+  <div class="news-widget-card">
+    <!-- FinancialJuice Widget-->
+    <div id="financialjuice-news-widget-container"></div>
+  </div>
 </div>
 {% endblock %}
 

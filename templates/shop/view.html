@@ -9,22 +9,51 @@
   </div>
 </div>
 
-<p class="muted" style="margin-bottom:16px">Body získáváš plněním výzev. Odznaky, které si koupíš, se zobrazí u tvého jména na profilu.</p>
+<p class="muted" style="margin-bottom:16px">Body získáváš plněním výzev. Odznaky se zobrazí u jména na profilu, bannery jako pozadí profilu (nastavíš je v Nastavení profilu).</p>
 
-<div class="shop-grid">
-  {% for it in items %}
+<div class="card-title" style="margin-bottom:10px">Odznaky</div>
+<div class="shop-grid" style="margin-bottom:24px">
+  {% for it in badges %}
     <div class="shop-item {{ 'is-owned' if it.owned }}">
-      <div class="shop-item-emoji">{{ it.emoji }}</div>
+      {% if it.image_path %}
+        <img src="{{ url_for('static', filename=it.image_path) }}" class="shop-item-image" alt="">
+      {% else %}
+        <div class="shop-item-emoji">{{ it.emoji }}</div>
+      {% endif %}
       <div class="shop-item-name">{{ it.name }}</div>
-      <div class="shop-item-desc">{{ it.desc }}</div>
+      <div class="shop-item-desc">{{ it.description }}</div>
       {% if it.owned %}
         <div class="challenge-status challenge-status-claimed" style="margin-top:auto">✓ Vlastníš</div>
       {% else %}
-        <form method="post" action="{{ url_for('challenges_bp.buy_item', key=it.key) }}" style="margin-top:auto">
+        <form method="post" action="{{ url_for('challenges_bp.buy_item', key=it.item_key) }}" style="margin-top:auto">
+          <button type="submit" class="btn btn-sm" {{ 'disabled' if points < it.cost }}>Koupit za {{ it.cost }} b.</button>
+        </form>
+      {% endif %}
+    </div>
+  {% else %}
+    <p class="muted">Zatím žádné odznaky.</p>
+  {% endfor %}
+</div>
+
+{% if banners %}
+<div class="card-title" style="margin-bottom:10px">Bannery na profil</div>
+<div class="shop-grid">
+  {% for it in banners %}
+    <div class="shop-item {{ 'is-owned' if it.owned }}">
+      {% if it.image_path %}
+        <img src="{{ url_for('static', filename=it.image_path) }}" class="shop-item-banner-preview" alt="">
+      {% endif %}
+      <div class="shop-item-name">{{ it.name }}</div>
+      <div class="shop-item-desc">{{ it.description }}</div>
+      {% if it.owned %}
+        <div class="challenge-status challenge-status-claimed" style="margin-top:auto">✓ Vlastníš</div>
+      {% else %}
+        <form method="post" action="{{ url_for('challenges_bp.buy_item', key=it.item_key) }}" style="margin-top:auto">
           <button type="submit" class="btn btn-sm" {{ 'disabled' if points < it.cost }}>Koupit za {{ it.cost }} b.</button>
         </form>
       {% endif %}
     </div>
   {% endfor %}
 </div>
+{% endif %}
 {% endblock %}

@@ -11,6 +11,8 @@ CREATE TABLE IF NOT EXISTS users (
     starting_capital REAL DEFAULT 0,
     points INTEGER DEFAULT 0,
     is_admin INTEGER DEFAULT 0,
+    has_seen_tutorial INTEGER DEFAULT 0,
+    banner_path TEXT,
     created_at TEXT DEFAULT (datetime('now'))
 );
 
@@ -150,6 +152,19 @@ CREATE TABLE IF NOT EXISTS shop_purchases (
     purchased_at TEXT DEFAULT (datetime('now')),
     UNIQUE(user_id, item_key),
     FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS shop_items (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    item_key TEXT UNIQUE NOT NULL,
+    kind TEXT CHECK(kind IN ('badge','banner')) DEFAULT 'badge',
+    name TEXT NOT NULL,
+    description TEXT,
+    emoji TEXT,
+    image_path TEXT,
+    cost INTEGER NOT NULL DEFAULT 50,
+    is_active INTEGER DEFAULT 1,
+    created_at TEXT DEFAULT (datetime('now'))
 );
 
 CREATE TABLE IF NOT EXISTS notifications (

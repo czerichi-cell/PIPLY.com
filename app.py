@@ -41,8 +41,9 @@ def create_app():
             )
             widget_enabled = settings["chat_widget_enabled"] if settings and settings["chat_widget_enabled"] is not None else 1
             sound_enabled = settings["notify_sound_enabled"] if settings and settings["notify_sound_enabled"] is not None else 1
-            user_row = query_one("SELECT points FROM users WHERE id=?", (g.user["id"],))
+            user_row = query_one("SELECT points, has_seen_tutorial FROM users WHERE id=?", (g.user["id"],))
             points = user_row["points"] if user_row and user_row["points"] is not None else 0
+            show_tutorial = bool(user_row and not user_row["has_seen_tutorial"])
             return {
                 "current_user": g.user,
                 "notif_count": unread_notification_count(g.user["id"]),
@@ -50,8 +51,9 @@ def create_app():
                 "chat_widget_enabled": bool(widget_enabled),
                 "notify_sound_enabled": bool(sound_enabled),
                 "user_points": points,
+                "show_tutorial": show_tutorial,
             }
-        return {"current_user": None, "notif_count": 0, "msg_count": 0, "chat_widget_enabled": False, "notify_sound_enabled": False, "user_points": 0}
+        return {"current_user": None, "notif_count": 0, "msg_count": 0, "chat_widget_enabled": False, "notify_sound_enabled": False, "user_points": 0, "show_tutorial": False}
 
     # --- Registrace blueprintu ---
     from routes.auth import bp as auth_bp

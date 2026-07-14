@@ -121,12 +121,89 @@ document.addEventListener("click", async (e) => {
 
 // --- Emoji picker: staticka sada bez nutnosti externiho API ---
 
-const PIPLY_EMOJIS = [
-  "😀","😂","🥲","😉","😍","🥳","😎","🤔","😅","😭",
-  "😱","🙄","😤","😴","🤝","👍","👎","👏","🙏","💪",
-  "🔥","💯","✅","❌","⚠️","🚀","📈","📉","💰","💸",
-  "🐂","🐻","⏰","🎯","🧠","☕","🍀","🙌","👀","💤",
-];
+const PIPLY_EMOJI_CATEGORIES = {
+  "Smajlíci": [
+    "😀","😃","😄","😁","😆","😅","🤣","😂","🙂","🙃","😉","😊","😇","🥰","😍","🤩",
+    "😘","😗","😚","😙","😋","😛","😜","🤪","😝","🤑","🤗","🤭","🤫","🤔","🤐","🤨",
+    "😐","😑","😶","😏","😒","🙄","😬","🤥","😌","😔","😪","🤤","😴","😷","🤒","🤕",
+    "🤢","🤮","🤧","🥵","🥶","🥴","😵","🤯","🤠","🥳","🥸","😎","🤓","🧐","😕","😟",
+    "🙁","☹️","😮","😯","😲","😳","🥺","😦","😧","😨","😰","😥","😢","😭","😱","😖",
+    "😣","😞","😓","😩","😫","🥱","😤","😡","😠","🤬","😈","👿","💀","☠️","💩","🤡",
+  ],
+  "Gesta": [
+    "👋","🤚","🖐️","✋","🖖","👌","🤌","🤏","✌️","🤞","🤟","🤘","🤙","👈","👉","👆",
+    "🖕","👇","☝️","👍","👎","✊","👊","🤛","🤜","👏","🙌","👐","🤲","🙏","✍️","💅",
+    "🤳","💪","🦾","🦵","🦶","👂","👃","🧠","🫀","🫁","👀","👁️","👅","👄",
+  ],
+  "Srdce": [
+    "❤️","🧡","💛","💚","💙","💜","🖤","🤍","🤎","💔","❤️‍🔥","❤️‍🩹","💕","💞","💓",
+    "💗","💖","💘","💝","💟","♥️","💯","💢","💥","💫","💦","💨","🕳️","💣","💬","👁️‍🗨️",
+  ],
+  "Zvířata": [
+    "🐶","🐱","🐭","🐹","🐰","🦊","🐻","🐼","🐻‍❄️","🐨","🐯","🦁","🐮","🐷","🐽","🐸",
+    "🐵","🙈","🙉","🙊","🐒","🐔","🐧","🐦","🐤","🦆","🦅","🦉","🦇","🐺","🐗","🐴",
+    "🦄","🐝","🪱","🐛","🦋","🐌","🐞","🐜","🪰","🐢","🐍","🦎","🦖","🦕","🐙","🦑",
+    "🦐","🦞","🦀","🐡","🐠","🐟","🐬","🐳","🐋","🦈","🐊","🐅","🐆","🦓","🦍","🦧",
+    "🐘","🦛","🦏","🐪","🐫","🦒","🦘","🐃","🐂","🐄","🐎","🐖","🐑","🐐","🦌","🐕",
+    "🐩","🦮","🐕‍🦺","🐈","🐈‍⬛","🐓","🦃","🦤","🦚","🦜","🦢","🦩","🕊️","🐇","🦝","🦨",
+    "🦡","🦫","🦦","🦥","🐁","🐀","🐿️","🦔",
+  ],
+  "Jídlo": [
+    "🍏","🍎","🍐","🍊","🍋","🍌","🍉","🍇","🍓","🫐","🍈","🍒","🍑","🥭","🍍","🥥",
+    "🥝","🍅","🍆","🥑","🥦","🥬","🥒","🌶️","🫑","🌽","🥕","🫒","🧄","🧅","🥔","🍠",
+    "🥐","🥯","🍞","🥖","🥨","🧀","🥚","🍳","🧈","🥞","🧇","🥓","🥩","🍗","🍖","🌭",
+    "🍔","🍟","🍕","🫓","🥪","🥙","🧆","🌮","🌯","🫔","🥗","🥘","🫕","🍝","🍜","🍲",
+    "🍛","🍣","🍱","🥟","🦪","🍤","🍙","🍚","🍘","🍥","🥠","🥮","🍢","🍡","🍧","🍨",
+    "🍦","🥧","🧁","🍰","🎂","🍮","🍭","🍬","🍫","🍿","🍩","🍪","🌰","🥜","🍯","🥛",
+    "🍼","☕","🍵","🧃","🥤","🧋","🍶","🍺","🍻","🥂","🍷","🥃","🍸","🍹","🧉","🍾",
+  ],
+  "Aktivity": [
+    "⚽","🏀","🏈","⚾","🥎","🎾","🏐","🏉","🥏","🎱","🪀","🏓","🏸","🏒","🏑","🥍",
+    "🏏","🪃","🥅","⛳","🪁","🏹","🎣","🤿","🥊","🥋","🎽","🛹","🛼","🛷","⛸️","🥌",
+    "🎿","⛷️","🏂","🪂","🏋️","🤼","🤸","⛹️","🤺","🤾","🏌️","🏇","🧘","🏄","🏊","🤽",
+    "🚣","🧗","🚵","🚴","🏆","🥇","🥈","🥉","🏅","🎖️","🏵️","🎗️","🎫","🎟️","🎪","🤹",
+    "🎭","🩰","🎨","🎬","🎤","🎧","🎼","🎹","🥁","🎷","🎺","🎸","🪕","🎻","🎲","♟️",
+    "🎯","🎳","🎮","🎰","🧩",
+  ],
+  "Cestování": [
+    "🚗","🚕","🚙","🚌","🚎","🏎️","🚓","🚑","🚒","🚐","🛻","🚚","🚛","🚜","🦯","🦽",
+    "🦼","🛴","🚲","🛵","🏍️","🛺","🚨","🚔","🚍","🚘","🚖","🚡","🚠","🚟","🚃","🚋",
+    "🚞","🚝","🚄","🚅","🚈","🚂","🚆","🚇","🚊","🚉","✈️","🛫","🛬","🛩️","💺","🛰️",
+    "🚀","🛸","🚁","🛶","⛵","🚤","🛥️","🛳️","⛴️","🚢","⚓","🪝","⛽","🚧","🚦","🚥",
+    "🗺️","🗿","🗽","🗼","🏰","🏯","🏟️","🎡","🎢","🎠","⛲","⛱️","🏖️","🏝️","🏜️","🌋",
+    "⛰️","🏔️","🗻","🏕️","⛺","🏠","🏡","🏘️","🏚️","🏗️","🏭","🏢","🏬","🏣","🏤","🏥",
+    "🏦","🏨","🏪","🏫","🏩","💒","🏛️","⛪","🕌","🕍","🛕","🕋","⛩️",
+  ],
+  "Objekty": [
+    "⌚","📱","💻","⌨️","🖥️","🖨️","🖱️","🖲️","🕹️","🗜️","💽","💾","💿","📀","📼","📷",
+    "📸","📹","🎥","📞","☎️","📟","📠","📺","📻","🎙️","🎚️","🎛️","🧭","⏱️","⏲️","⏰",
+    "🕰️","⌛","⏳","📡","🔋","🪫","🔌","💡","🔦","🕯️","🪔","🧯","🛢️","💸","💵","💴",
+    "💶","💷","🪙","💰","💳","💎","⚖️","🪜","🧰","🪛","🔧","🔨","⚒️","🛠️","⛏️","🪚",
+    "🔩","⚙️","🪤","🧱","⛓️","🧲","🔫","💣","🧨","🪓","🔪","🗡️","⚔️","🛡️","🚬","⚰️",
+    "🪦","⚱️","🏺","🔮","📿","🧿","💈","⚗️","🔭","🔬","🕳️","🩹","💊","💉","🩸","🧬",
+    "🦠","🧫","🧪","🌡️","🧹","🪠","🧺","🧻","🚽","🚰","🚿","🛁","🛀","🧼","🪥","🪒",
+    "🧴","🛎️","🔑","🗝️","🚪","🪑","🛋️","🛏️","🛌","🧸","🪆","🖼️","🪞","🪟","🛍️","🛒",
+  ],
+  "Symboly": [
+    "✅","❌","❎","➕","➖","➗","♾️","‼️","⁉️","❓","❔","❗","❕","〰️","💱","💲",
+    "⚠️","🚸","🔱","⚜️","🔰","♻️","✅","🈯","💹","❇️","✳️","❎","🌐","💠","Ⓜ️","🌀",
+    "💤","🏧","🚾","♿","🅿️","🛗","🈳","🈂️","🛂","🛃","🛄","🛅","🚹","🚺","🚼","⚧️",
+    "🚻","🚮","🎦","📶","🈁","🔣","🔤","🔡","🔠","🆖","🆗","🆙","🆒","🆕","🆓","0️⃣",
+    "1️⃣","2️⃣","3️⃣","4️⃣","5️⃣","6️⃣","7️⃣","8️⃣","9️⃣","🔟","🔢","#️⃣","*️⃣","⏏️","▶️","⏸️",
+    "⏯️","⏹️","⏺️","⏭️","⏮️","⏩","⏪","⏫","⏬","◀️","🔼","🔽","➡️","⬅️","⬆️","⬇️",
+    "↗️","↘️","↙️","↖️","↕️","↔️","↩️","↪️","⤴️","⤵️","🔀","🔁","🔂","🔄","🔃","🎵",
+    "🎶","➰","➿","✔️","☑️","🔘","🔴","🟠","🟡","🟢","🔵","🟣","🟤","⚫","⚪","🟥",
+    "🟧","🟨","🟩","🟦","🟪","🟫","⬛","⬜","◼️","◻️","◾","◽","▪️","▫️","🔺","🔻",
+    "🔸","🔹","🔶","🔷","🔳","🔲",
+  ],
+  "Vlajky": [
+    "🏁","🚩","🎌","🏴","🏳️","🏳️‍🌈","🏳️‍⚧️","🏴‍☠️","🇨🇿","🇸🇰","🇩🇪","🇦🇹","🇵🇱","🇬🇧","🇺🇸","🇫🇷",
+    "🇮🇹","🇪🇸","🇵🇹","🇳🇱","🇧🇪","🇨🇭","🇸🇪","🇳🇴","🇩🇰","🇫🇮","🇮🇪","🇬🇷","🇭🇺","🇷🇴","🇺🇦","🇷🇺",
+    "🇹🇷","🇯🇵","🇰🇷","🇨🇳","🇮🇳","🇧🇷","🇲🇽","🇨🇦","🇦🇺","🇿🇦","🇪🇺",
+  ],
+};
+
+const PIPLY_EMOJIS = Object.values(PIPLY_EMOJI_CATEGORIES).flat();
 
 // --- Chat: odeslani zpravy (text/obrazek/gif) bez reloadu + polling ---
 
@@ -205,6 +282,8 @@ function wireInviteButtons(container) {
   const emojiBtn = document.getElementById("emoji-btn");
   const emojiPicker = document.getElementById("emoji-picker");
   const emojiGrid = document.getElementById("emoji-grid");
+  const emojiCategories = document.getElementById("emoji-categories");
+  const emojiSearchInput = document.getElementById("emoji-search-input");
 
   const gifBtn = document.getElementById("gif-btn");
   const gifPicker = document.getElementById("gif-picker");
@@ -328,20 +407,55 @@ function wireInviteButtons(container) {
     });
   }
 
-  // --- Emoji picker ---
+  // --- Emoji picker (kategorie + hledani) ---
 
   if (emojiBtn && emojiGrid) {
-    PIPLY_EMOJIS.forEach((emoji) => {
-      const b = document.createElement("button");
-      b.type = "button";
-      b.className = "emoji-item";
-      b.textContent = emoji;
-      b.addEventListener("click", () => {
-        input.value += emoji;
-        input.focus();
+    const categoryNames = Object.keys(PIPLY_EMOJI_CATEGORIES);
+    let activeCategory = categoryNames[0];
+
+    function renderEmojiGrid() {
+      const query = (emojiSearchInput.value || "").trim();
+      emojiGrid.innerHTML = "";
+      let list;
+      if (query) {
+        list = PIPLY_EMOJIS.filter((e) => e.includes(query));
+      } else {
+        list = PIPLY_EMOJI_CATEGORIES[activeCategory] || [];
+      }
+      if (!list.length) {
+        emojiGrid.innerHTML = '<div class="picker-empty">Nic se nenašlo.</div>';
+        return;
+      }
+      list.forEach((emoji) => {
+        const b = document.createElement("button");
+        b.type = "button";
+        b.className = "emoji-item";
+        b.textContent = emoji;
+        b.addEventListener("click", () => {
+          input.value += emoji;
+          input.focus();
+        });
+        emojiGrid.appendChild(b);
       });
-      emojiGrid.appendChild(b);
+    }
+
+    categoryNames.forEach((name) => {
+      const tab = document.createElement("button");
+      tab.type = "button";
+      tab.className = "emoji-cat-tab" + (name === activeCategory ? " active" : "");
+      tab.textContent = name;
+      tab.addEventListener("click", () => {
+        activeCategory = name;
+        emojiSearchInput.value = "";
+        emojiCategories.querySelectorAll(".emoji-cat-tab").forEach((t) => t.classList.remove("active"));
+        tab.classList.add("active");
+        renderEmojiGrid();
+      });
+      emojiCategories.appendChild(tab);
     });
+
+    emojiSearchInput.addEventListener("input", renderEmojiGrid);
+    renderEmojiGrid();
 
     emojiBtn.addEventListener("click", (e) => {
       e.stopPropagation();
@@ -529,7 +643,135 @@ function wireInviteButtons(container) {
   document.getElementById("cookie-decline").addEventListener("click", () => dismiss("declined"));
 })();
 
-// --- Zvuk notifikace (generovany primo v prohlizeci, zadny externi soubor neni potreba) ---
+// --- Postranni panel: rozbaleni na hover, jinak jen ikonky (jako na mobilnich appkach typu IG) ---
+
+(function initSidebarCollapse() {
+  const sidebar = document.querySelector(".sidebar");
+  if (!sidebar) return;
+  sidebar.addEventListener("mouseenter", () => sidebar.classList.add("expanded"));
+  sidebar.addEventListener("mouseleave", () => sidebar.classList.remove("expanded"));
+})();
+
+// --- Prepinac svetly/tmavy rezim ---
+
+(function initThemeToggle() {
+  const btn = document.getElementById("theme-toggle");
+  if (!btn) return;
+  const moonIcon = document.getElementById("theme-icon-moon");
+  const sunIcon = document.getElementById("theme-icon-sun");
+
+  function syncIcons() {
+    const isLight = document.documentElement.getAttribute("data-theme") === "light";
+    moonIcon.style.display = isLight ? "none" : "block";
+    sunIcon.style.display = isLight ? "block" : "none";
+  }
+  syncIcons();
+
+  btn.addEventListener("click", () => {
+    const isLight = document.documentElement.getAttribute("data-theme") === "light";
+    if (isLight) {
+      document.documentElement.removeAttribute("data-theme");
+      try { localStorage.setItem("piply_theme", "dark"); } catch (err) { /* ticho */ }
+    } else {
+      document.documentElement.setAttribute("data-theme", "light");
+      try { localStorage.setItem("piply_theme", "light"); } catch (err) { /* ticho */ }
+    }
+    syncIcons();
+  });
+})();
+
+// --- Uvodni tutorial s maskotem (pro nove uzivatele + ty, co jim jeste nebyl zobrazen) ---
+
+(function initTutorial() {
+  const overlay = document.getElementById("tutorial-overlay");
+  if (!overlay || !window.PIPLY_SHOW_TUTORIAL) return;
+
+  const steps = [
+    {
+      img: "wave.png",
+      title: "Vítej v Piply!",
+      body: "Ahoj, já jsem tvůj průvodce. Za chvilku ti ukážu, co všechno appka umí – bude to rychlé, slibuju.",
+    },
+    {
+      img: "thumbsup.png",
+      title: "Deník obchodů",
+      body: "V Deníku si zapisuješ obchody – ručně, nebo importem z MT4/MT5. Statistiky a grafy se počítají automaticky.",
+    },
+    {
+      img: "tablet.png",
+      title: "Feed a kamarádi",
+      body: "Sdílej svoje obchody a myšlenky na Feedu, přidávej si kamarády a chatuj s nimi – i přes plovoucí okénko vpravo dole.",
+    },
+    {
+      img: "jump.png",
+      title: "Kalendář a výzvy",
+      body: "V Kalendáři si plánuj úkoly a zvi kamarády na společné akce. Ve Výzvách sbírej body a utrácej je v Obchodě za odznaky.",
+    },
+    {
+      img: "sign.png",
+      title: "Novinky v reálném čase",
+      body: "Na stránce Novinky sleduješ breaking news přímo z trhu – a appka tě na důležité zprávy sama upozorní.",
+    },
+    {
+      img: "sit.png",
+      title: "To je vše!",
+      body: "Teď už víš, jak Piply funguje. Kdykoliv si tenhle průvodce můžeš znovu pustit přes ikonku otazníku dole v menu.",
+    },
+  ];
+
+  let current = 0;
+  const mascotEl = document.getElementById("tutorial-mascot");
+  const titleEl = document.getElementById("tutorial-title");
+  const bodyEl = document.getElementById("tutorial-body");
+  const dotsEl = document.getElementById("tutorial-dots");
+  const prevBtn = document.getElementById("tutorial-prev");
+  const nextBtn = document.getElementById("tutorial-next");
+  const skipBtn = document.getElementById("tutorial-skip");
+
+  dotsEl.innerHTML = steps.map((_, i) => `<span class="tutorial-dot" data-i="${i}"></span>`).join("");
+
+  function render() {
+    const s = steps[current];
+    mascotEl.src = window.PIPLY_MASCOT_BASE + s.img;
+    titleEl.textContent = s.title;
+    bodyEl.textContent = s.body;
+    prevBtn.style.visibility = current === 0 ? "hidden" : "visible";
+    nextBtn.textContent = current === steps.length - 1 ? "Dokončit" : "Další";
+    dotsEl.querySelectorAll(".tutorial-dot").forEach((d, i) => {
+      d.classList.toggle("active", i === current);
+    });
+  }
+
+  async function finish() {
+    overlay.style.display = "none";
+    try {
+      await fetch("/u/tutorial/complete", { method: "POST" });
+    } catch (err) {
+      // ticho
+    }
+  }
+
+  nextBtn.addEventListener("click", () => {
+    if (current === steps.length - 1) { finish(); return; }
+    current++;
+    render();
+  });
+  prevBtn.addEventListener("click", () => {
+    if (current === 0) return;
+    current--;
+    render();
+  });
+  skipBtn.addEventListener("click", finish);
+  dotsEl.addEventListener("click", (e) => {
+    const dot = e.target.closest(".tutorial-dot");
+    if (!dot) return;
+    current = parseInt(dot.dataset.i, 10);
+    render();
+  });
+
+  render();
+  overlay.style.display = "flex";
+})();
 
 let _piplyAudioCtx = null;
 function _piplyGetAudioCtx() {

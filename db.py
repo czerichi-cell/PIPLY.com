@@ -50,6 +50,30 @@ def _run_migrations(conn):
         conn.execute("ALTER TABLE users ADD COLUMN points INTEGER DEFAULT 0")
     if "is_admin" not in user_cols:
         conn.execute("ALTER TABLE users ADD COLUMN is_admin INTEGER DEFAULT 0")
+    if "has_seen_tutorial" not in user_cols:
+        conn.execute("ALTER TABLE users ADD COLUMN has_seen_tutorial INTEGER DEFAULT 0")
+    if "banner_path" not in user_cols:
+        conn.execute("ALTER TABLE users ADD COLUMN banner_path TEXT")
+    if "selected_banner_key" not in user_cols:
+        conn.execute("ALTER TABLE users ADD COLUMN selected_banner_key TEXT")
+
+    # Prvni naplneni obchodu puvodnimi odznaky (jen pokud je tabulka jeste prazdna,
+    # aby se to nespoustelo opakovane a neduplikovalo pri kazdem startu appky)
+    shop_count = conn.execute("SELECT COUNT(*) FROM shop_items").fetchone()[0]
+    if shop_count == 0:
+        seed_items = [
+            ("badge_rocket", "badge", "Rocket", "Odznak k tvému jménu na profilu.", "🚀", 50),
+            ("badge_fire", "badge", "On Fire", "Pro ty na winning streaku.", "🔥", 60),
+            ("badge_bull", "badge", "Bull", "Věčný optimista.", "🐂", 80),
+            ("badge_bear", "badge", "Bear", "Věčný pesimista.", "🐻", 80),
+            ("badge_diamond", "badge", "Diamond Hands", "Nikdy neprodává se ztrátou (aspoň psychicky).", "💎", 100),
+            ("badge_shark", "badge", "Shark", "Loví příležitosti na trhu.", "🦈", 100),
+            ("badge_crown", "badge", "King", "Protože si to zasloužíš.", "👑", 250),
+        ]
+        conn.executemany(
+            "INSERT INTO shop_items (item_key, kind, name, description, emoji, cost) VALUES (?,?,?,?,?,?)",
+            seed_items,
+        )
 
 
 def query_all(sql, params=()):

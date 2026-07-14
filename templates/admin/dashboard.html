@@ -1,7 +1,10 @@
 {% extends "base.html" %}
 {% block title %}Admin – Piply{% endblock %}
 {% block content %}
-<div class="page-header"><h1>Admin panel</h1></div>
+<div class="page-header">
+  <h1>Admin panel</h1>
+  <a href="{{ url_for('admin_bp.shop_items') }}" class="btn btn-sm">Správa obchodu (odznaky/bannery)</a>
+</div>
 
 <div class="admin-stats-row">
   <div class="card admin-stat"><div class="admin-stat-num">{{ stats.users }}</div><div class="muted">Uživatelů</div></div>

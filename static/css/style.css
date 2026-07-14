@@ -1,4 +1,5 @@
 :root {
+  color-scheme: dark;
   --bg: #0a0a0a;
   --bg-elevated: #131313;
   --card: #171717;
@@ -21,6 +22,29 @@
   --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, monospace;
 }
+
+html[data-theme="light"] {
+  color-scheme: light;
+  --bg: #f4f5f7;
+  --bg-elevated: #ffffff;
+  --card: #ffffff;
+  --card-hover: #f0f2f5;
+  --border: #e1e3e8;
+  --text: #17181c;
+  --text-muted: #5c606b;
+  --text-faint: #9a9ea8;
+  --accent: #3fa832;
+  --accent-ink: #ffffff;
+  --accent-dim: #e2f5df;
+  --green: #3fa832;
+  --green-dim: #e2f5df;
+  --red: #d63847;
+  --red-dim: #fbe6e8;
+  --amber: #b8860b;
+  --purple: #6a6e78;
+}
+html[data-theme="light"] .brand-logo-dark { display: block; }
+html[data-theme="light"] .brand-logo-default { display: none; }
 
 * { box-sizing: border-box; }
 
@@ -498,8 +522,8 @@ tr:last-child td { border-bottom: none; }
   bottom: 100%;
   left: 0;
   margin-bottom: 8px;
-  width: 300px;
-  max-height: 320px;
+  width: 320px;
+  max-height: 380px;
   background: var(--card);
   border: 1px solid var(--border);
   border-radius: var(--radius);
@@ -511,6 +535,16 @@ tr:last-child td { border-bottom: none; }
 .picker-popover.open { display: flex; }
 .picker-search { padding: 8px; border-bottom: 1px solid var(--border); }
 .picker-search input { font-size: 13px; }
+.emoji-categories {
+  display: flex; gap: 4px; padding: 6px 8px; overflow-x: auto;
+  border-bottom: 1px solid var(--border); flex-shrink: 0;
+}
+.emoji-cat-tab {
+  background: none; border: none; color: var(--text-faint); cursor: pointer;
+  font-size: 11px; padding: 4px 8px; border-radius: 999px; white-space: nowrap; flex-shrink: 0;
+}
+.emoji-cat-tab:hover { color: var(--text); background: var(--bg-elevated); }
+.emoji-cat-tab.active { color: var(--accent-ink); background: var(--accent); }
 .picker-grid {
   overflow-y: auto;
   padding: 8px;
@@ -659,12 +693,14 @@ html.piply-fading body {
 .calendar-header {
   display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;
 }
-.calendar-nav { display: flex; align-items: center; gap: 12px; }
+.calendar-nav { display: flex; align-items: center; gap: 10px; }
 .calendar-nav a {
-  width: 32px; height: 32px; border-radius: var(--radius-sm); border: 1px solid var(--border);
-  display: flex; align-items: center; justify-content: center; color: var(--text-muted);
+  width: 40px; height: 40px; border-radius: var(--radius-sm); border: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: center; color: var(--text);
+  background: var(--card); cursor: pointer;
 }
-.calendar-nav a:hover { background: var(--card); color: var(--text); }
+.calendar-nav a svg { width: 20px; height: 20px; }
+.calendar-nav a:hover { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
 .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
 .calendar-daylabel { text-align: center; font-size: 11.5px; color: var(--text-faint); font-weight: 600; padding-bottom: 4px; }
 .calendar-cell {
@@ -767,6 +803,67 @@ html.piply-fading body {
 
 /* ============ Novinky (FinancialJuice widget) ============ */
 .news-widget-card {
-  background: #000000; border: 1px solid var(--border); border-radius: var(--radius);
+  background: #1e222d; border: 1px solid var(--border); border-radius: var(--radius);
   padding: 4px; overflow: hidden;
 }
+
+/* ============ Tutorial s maskotem ============ */
+.tutorial-overlay {
+  position: fixed; inset: 0; z-index: 1000;
+  background: rgba(0,0,0,0.7); backdrop-filter: blur(3px);
+  display: flex; align-items: center; justify-content: center; padding: 20px;
+}
+.tutorial-modal {
+  background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+  max-width: 420px; width: 100%; padding: 28px 28px 22px; position: relative;
+  text-align: center; box-shadow: 0 30px 80px rgba(0,0,0,0.6);
+  animation: tutorial-in .25s ease-out;
+}
+@keyframes tutorial-in { from { opacity: 0; transform: translateY(14px) scale(.97); } to { opacity: 1; transform: translateY(0) scale(1); } }
+.tutorial-skip {
+  position: absolute; top: 14px; right: 16px; background: none; border: none;
+  color: var(--text-faint); font-size: 12.5px; cursor: pointer;
+}
+.tutorial-skip:hover { color: var(--text); }
+.tutorial-mascot { width: 140px; height: auto; margin: 0 auto 14px; display: block; object-fit: contain; }
+.tutorial-text h2 { font-size: 19px; margin-bottom: 8px; }
+.tutorial-text p { color: var(--text-muted); font-size: 14px; line-height: 1.5; min-height: 63px; }
+.tutorial-dots { display: flex; justify-content: center; gap: 6px; margin: 14px 0; }
+.tutorial-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--border); cursor: pointer; }
+.tutorial-dot.active { background: var(--accent); width: 18px; border-radius: 4px; }
+.tutorial-actions { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-top: 6px; }
+
+/* ============ Postranni panel: kolabovany na ikonky, rozbaleni pri hoveru (desktop) ============ */
+@media (min-width: 701px) {
+  .sidebar { transition: width .18s ease; overflow: hidden; }
+  .sidebar:not(.expanded) { width: 68px; }
+  .sidebar.expanded { width: 232px; }
+  .sidebar:not(.expanded) .nav-item { font-size: 0; justify-content: center; padding: 9px 0; }
+  .sidebar:not(.expanded) .nav-item .badge { display: none; }
+  .sidebar:not(.expanded) .brand { justify-content: center; }
+  .sidebar:not(.expanded) .brand-logo-default,
+  .sidebar:not(.expanded) .brand-logo-dark { display: none !important; }
+  .sidebar:not(.expanded) .brand-icon-collapsed { display: block !important; }
+  .sidebar.expanded .brand-icon-collapsed { display: none !important; }
+  .sidebar:not(.expanded) .user-chip span { display: none; }
+  .sidebar:not(.expanded) .user-chip { justify-content: center; padding: 6px 0; }
+  .sidebar:not(.expanded) .sidebar-footer { flex-wrap: wrap; justify-content: center; gap: 6px; }
+}
+.brand-icon-collapsed { display: none; width: 30px; height: 30px; }
+
+/* ============ Obchod: obrazkove odznaky/bannery ============ */
+.shop-item-image { width: 48px; height: 48px; object-fit: contain; margin-bottom: 4px; }
+.shop-item-banner-preview { width: 100%; height: 70px; object-fit: cover; border-radius: var(--radius-sm); margin-bottom: 6px; }
+
+/* ============ Banner na profilu ============ */
+.profile-header-card {
+  position: relative; background-size: cover; background-position: center;
+  min-height: 140px; display: flex; align-items: flex-end;
+  overflow: hidden;
+}
+.profile-header-overlay {
+  position: absolute; inset: 0;
+  background: linear-gradient(180deg, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0.75) 100%);
+}
+.profile-banner-current-preview { margin-bottom: 8px; }
+.profile-banner-current-preview img { width: 100%; max-width: 400px; height: 90px; object-fit: cover; border-radius: var(--radius-sm); }

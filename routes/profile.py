@@ -68,6 +68,14 @@ def view_profile(username):
     from routes.challenges import get_user_badges
     badges = get_user_badges(them)
 
+    banner_url = None
+    if profile_user["banner_path"]:
+        banner_url = url_for("static", filename=profile_user["banner_path"])
+    elif profile_user["selected_banner_key"]:
+        banner_item = query_one("SELECT * FROM shop_items WHERE item_key=?", (profile_user["selected_banner_key"],))
+        if banner_item and banner_item["image_path"]:
+            banner_url = url_for("static", filename=banner_item["image_path"])
+
     return render_template(
         "profile/view.html",
         profile_user=profile_user,
@@ -81,6 +89,7 @@ def view_profile(username):
         friends_count=friends_count,
         recent_trades=recent_trades,
         badges=badges,
+        banner_url=banner_url,
     )
 
 
@@ -102,15 +111,34 @@ def edit_profile():
         if saved:
             avatar_path = saved
 
+        banner_path = g.user["banner_path"]
+        selected_banner_key = g.user["selected_banner_key"]
+        banner_file = request.files.get("banner")
+        banner_saved = save_upload(banner_file, "banners")
+        chosen_banner_key = request.form.get("banner_key", "").strip()
+        if banner_saved:
+            banner_path = banner_saved
+            selected_banner_key = None
+        elif chosen_banner_key:
+            if chosen_banner_key == "__none__":
+                banner_path = None
+                selected_banner_key = None
+            else:
+                selected_banner_key = chosen_banner_key
+                banner_path = None
+
         execute(
-            "UPDATE users SET display_name=?, bio=?, avatar_path=?, starting_capital=? WHERE id=?",
-            (display_name, bio, avatar_path, starting_capital, g.user["id"]),
+            """UPDATE users SET display_name=?, bio=?, avatar_path=?, starting_capital=?,
+               banner_path=?, selected_banner_key=? WHERE id=?""",
+            (display_name, bio, avatar_path, starting_capital, banner_path, selected_banner_key, g.user["id"]),
         )
         flash("Profil uložen.", "success")
         return redirect(url_for("profile.view_profile", username=g.user["username"]))
 
+    from routes.challenges import get_user_owned_banners
     settings = query_one("SELECT * FROM user_settings WHERE user_id = ?", (g.user["id"],))
-    return render_template("profile/edit.html", settings=settings)
+    owned_banners = get_user_owned_banners(g.user["id"])
+    return render_template("profile/edit.html", settings=settings, owned_banners=owned_banners)
 
 
 @bp.route("/settings/privacy", methods=["POST"])
@@ -142,3 +170,18 @@ def search_users():
             (f"%{q}%", f"%{q}%", g.user["id"]),
         )
     return render_template("profile/search.html", results=results, q=q)
+
+
+@bp.route("/tutorial/complete", methods=["POST"])
+@login_required
+def complete_tutorial():
+    execute("UPDATE users SET has_seen_tutorial=1 WHERE id=?", (g.user["id"],))
+    return {"ok": True}
+
+
+@bp.route("/tutorial/restart", methods=["POST"])
+@login_required
+def restart_tutorial():
+    """Umoznuje znovu spustit tutorial rucne (napr. z odkazu v nastaveni)."""
+    execute("UPDATE users SET has_seen_tutorial=0 WHERE id=?", (g.user["id"],))
+    return redirect(url_for("social.feed"))

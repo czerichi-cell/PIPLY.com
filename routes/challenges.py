@@ -34,16 +34,6 @@ CHALLENGES = [
      "points": 25, "target": 1, "stat": "calendar_invites_sent"},
 ]
 
-SHOP_ITEMS = [
-    {"key": "badge_rocket", "name": "Rocket", "emoji": "🚀", "desc": "Odznak k tvému jménu na profilu.", "cost": 50, "kind": "badge"},
-    {"key": "badge_fire", "name": "On Fire", "emoji": "🔥", "desc": "Pro ty na winning streaku.", "cost": 60, "kind": "badge"},
-    {"key": "badge_bull", "name": "Bull", "emoji": "🐂", "desc": "Věčný optimista.", "cost": 80, "kind": "badge"},
-    {"key": "badge_bear", "name": "Bear", "emoji": "🐻", "desc": "Věčný pesimista.", "cost": 80, "kind": "badge"},
-    {"key": "badge_diamond", "name": "Diamond Hands", "emoji": "💎", "desc": "Nikdy neprodává se ztrátou (aspoň psychicky).", "cost": 100, "kind": "badge"},
-    {"key": "badge_shark", "name": "Shark", "emoji": "🦈", "desc": "Loví příležitosti na trhu.", "cost": 100, "kind": "badge"},
-    {"key": "badge_crown", "name": "King", "emoji": "👑", "desc": "Protože si to zasloužíš.", "cost": 250, "kind": "badge"},
-]
-
 
 def _compute_stats(user_id):
     trades_row = query_one("SELECT COUNT(*) AS c FROM trades WHERE user_id=?", (user_id,))
@@ -94,9 +84,25 @@ def get_user_points(user_id):
 
 
 def get_user_badges(user_id):
-    """Vrati seznam odznaku (emoji + nazev), ktere si uzivatel koupil - pro zobrazeni na profilu."""
-    owned_keys = {r["item_key"] for r in query_all("SELECT item_key FROM shop_purchases WHERE user_id=?", (user_id,))}
-    return [it for it in SHOP_ITEMS if it["kind"] == "badge" and it["key"] in owned_keys]
+    """Vrati seznam odznaku, ktere si uzivatel koupil - pro zobrazeni na profilu."""
+    return query_all(
+        """SELECT shop_items.* FROM shop_purchases
+           JOIN shop_items ON shop_items.item_key = shop_purchases.item_key
+           WHERE shop_purchases.user_id = ? AND shop_items.kind = 'badge'
+           ORDER BY shop_purchases.purchased_at""",
+        (user_id,),
+    )
+
+
+def get_user_owned_banners(user_id):
+    """Vrati seznam bannery, ktere si uzivatel koupil v obchode (kromě vlastniho uploadu)."""
+    return query_all(
+        """SELECT shop_items.* FROM shop_purchases
+           JOIN shop_items ON shop_items.item_key = shop_purchases.item_key
+           WHERE shop_purchases.user_id = ? AND shop_items.kind = 'banner'
+           ORDER BY shop_purchases.purchased_at""",
+        (user_id,),
+    )
 
 
 @bp.route("/challenges")
@@ -152,15 +158,17 @@ def claim_challenge(key):
 @bp.route("/shop")
 @login_required
 def shop():
+    all_items = query_all("SELECT * FROM shop_items WHERE is_active=1 ORDER BY kind, cost")
     owned_keys = {r["item_key"] for r in query_all("SELECT item_key FROM shop_purchases WHERE user_id=?", (g.user["id"],))}
-    items = [{**it, "owned": it["key"] in owned_keys} for it in SHOP_ITEMS]
-    return render_template("shop/view.html", items=items, points=get_user_points(g.user["id"]))
+    badges = [dict(it, owned=it["item_key"] in owned_keys) for it in all_items if it["kind"] == "badge"]
+    banners = [dict(it, owned=it["item_key"] in owned_keys) for it in all_items if it["kind"] == "banner"]
+    return render_template("shop/view.html", badges=badges, banners=banners, points=get_user_points(g.user["id"]))
 
 
 @bp.route("/shop/<key>/buy", methods=["POST"])
 @login_required
 def buy_item(key):
-    item = next((i for i in SHOP_ITEMS if i["key"] == key), None)
+    item = query_one("SELECT * FROM shop_items WHERE item_key=? AND is_active=1", (key,))
     if not item:
         flash("Neznámá položka.", "error")
         return redirect(url_for("challenges_bp.shop"))
@@ -180,5 +188,5 @@ def buy_item(key):
         "INSERT INTO shop_purchases (user_id, item_key, cost_paid) VALUES (?,?,?)",
         (g.user["id"], key, item["cost"]),
     )
-    flash(f"Koupeno: {item['emoji']} {item['name']}!", "success")
+    flash(f"Koupeno: {item['emoji'] or ''} {item['name']}!", "success")
     return redirect(url_for("challenges_bp.shop"))
