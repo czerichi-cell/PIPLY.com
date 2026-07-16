@@ -2,7 +2,7 @@
 {% block title %}{{ profile_user['display_name'] or profile_user['username'] }} – Piply{% endblock %}
 {% block content %}
 
-<div class="card profile-header-card" {{ 'style="background-image:url(\'' ~ banner_url ~ '\')"'|safe if banner_url }}>
+<div class="card profile-header-card" style="{% if banner_url %}background-image:url('{{ banner_url }}');{% endif %}">
   {% if banner_url %}<div class="profile-header-overlay"></div>{% endif %}
   <div style="display:flex; gap:18px; align-items:center; flex-wrap:wrap; position:relative">
     <img class="avatar avatar-lg" src="{{ url_for('static', filename=profile_user['avatar_path']) if profile_user['avatar_path'] else url_for('static', filename='img/piply-icon.png') }}" alt="">

@@ -83,12 +83,13 @@ p { margin: 0 0 8px; }
   height: 100vh;
 }
 
+.brand-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 4px 8px 20px; margin-bottom: 12px; border-bottom: 1px solid var(--border);
+}
 .brand {
   display: flex;
   align-items: center;
-  padding: 4px 8px 20px;
-  margin-bottom: 12px;
-  border-bottom: 1px solid var(--border);
 }
 .brand-logo { height: 26px; width: auto; display: block; }
 .brand-mark {
@@ -97,6 +98,12 @@ p { margin: 0 0 8px; }
 }
 .brand-mark img { width: 100%; height: 100%; object-fit: contain; }
 .brand-name { font-weight: 700; font-size: 16px; }
+.theme-toggle-btn {
+  background: none; border: 1px solid var(--border); border-radius: var(--radius-sm);
+  color: var(--text-faint); cursor: pointer; padding: 6px; display: flex;
+  flex-shrink: 0;
+}
+.theme-toggle-btn:hover { color: var(--text); background: var(--bg-elevated); }
 
 .nav { display: flex; flex-direction: column; gap: 2px; flex: 1; }
 .nav-item {
@@ -433,15 +440,64 @@ tr:last-child td { border-bottom: none; }
 .filters-bar { display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; align-items: end; }
 .filters-bar .field { margin-bottom: 0; min-width: 160px; }
 
+/* ============ Mobilni navigace: skryta na desktopu, zobrazena jen pod 860px ============ */
+.mobile-topbar, .mobile-tabbar, .mobile-drawer-overlay { display: none; }
+
 @media (max-width: 860px) {
+  .sidebar { display: none; }
   .shell { flex-direction: column; }
-  .sidebar { width: 100%; height: auto; position: relative; flex-direction: row; overflow-x: auto; padding: 10px; }
-  .brand, .sidebar-footer { display: none; }
-  .nav { flex-direction: row; }
-  .nav-item span, .nav-item { white-space: nowrap; }
-  .main { padding: 16px; }
+  .main { padding: 76px 16px 84px; }
   .field-row, .field-row-3 { grid-template-columns: 1fr; }
   .charts-row { grid-template-columns: 1fr; }
+
+  .mobile-topbar {
+    display: flex; align-items: center; justify-content: space-between;
+    position: fixed; top: 0; left: 0; right: 0; height: 56px; z-index: 300;
+    background: var(--bg-elevated); border-bottom: 1px solid var(--border);
+    padding: 0 14px;
+  }
+  .mobile-topbar-logo { display: flex; align-items: center; gap: 8px; font-weight: 700; color: var(--text); }
+  .mobile-topbar-logo img { width: 26px; height: 26px; }
+  .mobile-topbar-btn { background: none; border: none; padding: 0; display: flex; }
+
+  .mobile-tabbar {
+    display: flex; align-items: center; justify-content: space-around;
+    position: fixed; bottom: 0; left: 0; right: 0; height: 60px; z-index: 300;
+    background: var(--bg-elevated); border-top: 1px solid var(--border);
+    padding-bottom: env(safe-area-inset-bottom, 0);
+  }
+  .mobile-tab {
+    position: relative; display: flex; align-items: center; justify-content: center;
+    color: var(--text-faint); width: 44px; height: 44px; border-radius: var(--radius-sm);
+  }
+  .mobile-tab svg { width: 23px; height: 23px; fill: none; stroke: currentColor; stroke-width: 1.8; }
+  .mobile-tab.active { color: var(--accent); }
+  .mobile-tab-badge {
+    position: absolute; top: 6px; right: 8px; width: 8px; height: 8px;
+    border-radius: 50%; background: var(--red);
+  }
+
+  .mobile-drawer-overlay {
+    position: fixed; inset: 0; z-index: 400; background: rgba(0,0,0,0.6);
+  }
+  .mobile-drawer-overlay.open { display: block; }
+  .mobile-drawer {
+    position: absolute; top: 0; right: 0; height: 100%; width: 82%; max-width: 320px;
+    background: var(--bg-elevated); border-left: 1px solid var(--border);
+    display: flex; flex-direction: column; padding: 16px;
+    animation: mobile-drawer-in .2s ease-out;
+  }
+  @keyframes mobile-drawer-in { from { transform: translateX(100%); } to { transform: translateX(0); } }
+  .mobile-drawer-header { display: flex; align-items: center; gap: 8px; margin-bottom: 16px; padding-bottom: 14px; border-bottom: 1px solid var(--border); }
+  .mobile-drawer-header .user-chip { flex: 1; }
+  .mobile-drawer-close { background: none; border: none; color: var(--text-faint); font-size: 24px; line-height: 1; padding: 4px; }
+  .mobile-drawer-nav { display: flex; flex-direction: column; gap: 2px; overflow-y: auto; }
+  .mobile-drawer-nav .nav-item { padding: 11px 10px; }
+  .mobile-drawer-divider { border-top: 1px solid var(--border); margin: 8px 0; }
+
+  .chat-widget { bottom: 76px; }
+  .cookie-banner { bottom: 60px; }
+  .toast-container { top: 66px; right: 12px; left: 12px; max-width: none; }
 }
 
 /* ---------- Vlastni confirm modal (nahrazuje native confirm()) ---------- */
@@ -668,9 +724,6 @@ html.piply-fading body {
 .cookie-banner-text { font-size: 13px; color: var(--text-muted); max-width: 640px; }
 .cookie-banner-text a { color: var(--accent); }
 .cookie-banner-actions { display: flex; gap: 8px; flex-shrink: 0; }
-@media (max-width: 640px) {
-  .chat-widget { bottom: 78px; }
-}
 
 /* ============ Kalendarova pozvanka v chatu ============ */
 .invite-card {
@@ -840,6 +893,8 @@ html.piply-fading body {
   .sidebar.expanded { width: 232px; }
   .sidebar:not(.expanded) .nav-item { font-size: 0; justify-content: center; padding: 9px 0; }
   .sidebar:not(.expanded) .nav-item .badge { display: none; }
+  .sidebar:not(.expanded) .brand-row { justify-content: center; }
+  .sidebar:not(.expanded) .theme-toggle-btn { display: none; }
   .sidebar:not(.expanded) .brand { justify-content: center; }
   .sidebar:not(.expanded) .brand-logo-default,
   .sidebar:not(.expanded) .brand-logo-dark { display: none !important; }

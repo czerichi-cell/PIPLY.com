@@ -648,26 +648,59 @@ function wireInviteButtons(container) {
 (function initSidebarCollapse() {
   const sidebar = document.querySelector(".sidebar");
   if (!sidebar) return;
-  sidebar.addEventListener("mouseenter", () => sidebar.classList.add("expanded"));
-  sidebar.addEventListener("mouseleave", () => sidebar.classList.remove("expanded"));
+
+  let expandTimer = null;
+  let collapseTimer = null;
+
+  sidebar.addEventListener("mouseenter", () => {
+    clearTimeout(collapseTimer);
+    // maly zpozdeni, at rychly proklik na odkaz v panelu nezpusobi zablesk rozbaleni
+    expandTimer = setTimeout(() => sidebar.classList.add("expanded"), 220);
+  });
+  sidebar.addEventListener("mouseleave", () => {
+    clearTimeout(expandTimer);
+    // delsi zpozdeni pred sbalenim, at to nemizi hned pri sebemensim odjeti mysi
+    collapseTimer = setTimeout(() => sidebar.classList.remove("expanded"), 900);
+  });
+})();
+
+// --- Mobilni vysuvne menu ---
+
+(function initMobileDrawer() {
+  const openBtn = document.getElementById("mobile-menu-open");
+  const closeBtn = document.getElementById("mobile-menu-close");
+  const overlay = document.getElementById("mobile-drawer-overlay");
+  if (!openBtn || !overlay) return;
+
+  openBtn.addEventListener("click", () => overlay.classList.add("open"));
+  closeBtn.addEventListener("click", () => overlay.classList.remove("open"));
+  overlay.addEventListener("click", (e) => {
+    if (e.target === overlay) overlay.classList.remove("open");
+  });
 })();
 
 // --- Prepinac svetly/tmavy rezim ---
 
 (function initThemeToggle() {
   const btn = document.getElementById("theme-toggle");
-  if (!btn) return;
+  const mobileBtn = document.getElementById("mobile-theme-toggle");
+  if (!btn && !mobileBtn) return;
+
   const moonIcon = document.getElementById("theme-icon-moon");
   const sunIcon = document.getElementById("theme-icon-sun");
+  const mobileMoonIcon = document.getElementById("mobile-theme-icon-moon");
+  const mobileSunIcon = document.getElementById("mobile-theme-icon-sun");
 
   function syncIcons() {
     const isLight = document.documentElement.getAttribute("data-theme") === "light";
-    moonIcon.style.display = isLight ? "none" : "block";
-    sunIcon.style.display = isLight ? "block" : "none";
+    if (moonIcon) moonIcon.style.display = isLight ? "none" : "block";
+    if (sunIcon) sunIcon.style.display = isLight ? "block" : "none";
+    if (mobileMoonIcon) mobileMoonIcon.style.display = isLight ? "none" : "block";
+    if (mobileSunIcon) mobileSunIcon.style.display = isLight ? "block" : "none";
   }
   syncIcons();
 
-  btn.addEventListener("click", () => {
+  function toggle() {
     const isLight = document.documentElement.getAttribute("data-theme") === "light";
     if (isLight) {
       document.documentElement.removeAttribute("data-theme");
@@ -677,7 +710,10 @@ function wireInviteButtons(container) {
       try { localStorage.setItem("piply_theme", "light"); } catch (err) { /* ticho */ }
     }
     syncIcons();
-  });
+  }
+
+  if (btn) btn.addEventListener("click", toggle);
+  if (mobileBtn) mobileBtn.addEventListener("click", toggle);
 })();
 
 // --- Uvodni tutorial s maskotem (pro nove uzivatele + ty, co jim jeste nebyl zobrazen) ---
