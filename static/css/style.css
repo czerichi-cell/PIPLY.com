@@ -924,8 +924,16 @@ html.piply-fading body {
   .sidebar:not(.expanded) .brand-icon-collapsed { display: block !important; }
   .sidebar.expanded .brand-icon-collapsed { display: none !important; }
   .sidebar:not(.expanded) .user-chip span { display: none; }
-  .sidebar:not(.expanded) .user-chip { justify-content: center; padding: 6px 0; }
-  .sidebar:not(.expanded) .sidebar-footer { flex-wrap: wrap; justify-content: center; gap: 6px; }
+  .sidebar:not(.expanded) .user-chip { justify-content: center; padding: 6px 0; width: auto; }
+  .sidebar:not(.expanded) .sidebar-footer {
+    flex-direction: column; flex-wrap: nowrap; align-items: center;
+    justify-content: flex-start; gap: 10px; padding-top: 14px;
+  }
+  .sidebar:not(.expanded) .settings-link,
+  .sidebar:not(.expanded) .logout-link {
+    width: 36px; height: 36px; padding: 0; display: flex;
+    align-items: center; justify-content: center; flex-shrink: 0;
+  }
 }
 .brand-icon-collapsed { display: none; width: 30px; height: 30px; }
 
