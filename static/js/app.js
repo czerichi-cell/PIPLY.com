@@ -818,6 +818,23 @@ function wireInviteButtons(container) {
 
   if (btn) btn.addEventListener("click", toggle);
   if (mobileBtn) mobileBtn.addEventListener("click", toggle);
+
+  // Pokud uzivatel jeste nikdy prepinac rucne nepouzil, sledujeme zmenu
+  // systemoveho motivu zarizeni za behu (napr. automaticky tmavy rezim v noci)
+  try {
+    var savedPref = localStorage.getItem("piply_theme");
+    if (savedPref !== "light" && savedPref !== "dark" && window.matchMedia) {
+      window.matchMedia("(prefers-color-scheme: light)").addEventListener("change", (e) => {
+        if (e.matches) {
+          document.documentElement.setAttribute("data-theme", "light");
+        } else {
+          document.documentElement.removeAttribute("data-theme");
+        }
+        syncIcons();
+        document.dispatchEvent(new CustomEvent("piply-theme-changed", { detail: { light: e.matches } }));
+      });
+    }
+  } catch (err) { /* ticho */ }
 })();
 
 // --- Uvodni tutorial s maskotem (pro nove uzivatele + ty, co jim jeste nebyl zobrazen) ---
