@@ -56,6 +56,12 @@ def _run_migrations(conn):
         conn.execute("ALTER TABLE users ADD COLUMN banner_path TEXT")
     if "selected_banner_key" not in user_cols:
         conn.execute("ALTER TABLE users ADD COLUMN selected_banner_key TEXT")
+    if "is_banned" not in user_cols:
+        conn.execute("ALTER TABLE users ADD COLUMN is_banned INTEGER DEFAULT 0")
+    if "avatar_position" not in user_cols:
+        conn.execute("ALTER TABLE users ADD COLUMN avatar_position TEXT DEFAULT '50% 50%'")
+    if "banner_position" not in user_cols:
+        conn.execute("ALTER TABLE users ADD COLUMN banner_position TEXT DEFAULT '50% 50%'")
 
     # Prvni naplneni obchodu puvodnimi odznaky (jen pokud je tabulka jeste prazdna,
     # aby se to nespoustelo opakovane a neduplikovalo pri kazdem startu appky)
@@ -73,6 +79,29 @@ def _run_migrations(conn):
         conn.executemany(
             "INSERT INTO shop_items (item_key, kind, name, description, emoji, cost) VALUES (?,?,?,?,?,?)",
             seed_items,
+        )
+
+    challenge_count = conn.execute("SELECT COUNT(*) FROM challenges").fetchone()[0]
+    if challenge_count == 0:
+        seed_challenges = [
+            ("first_trade", "První obchod", "Zapiš svůj první obchod do deníku.", 20, 1, "trades", 0),
+            ("trades_5", "Rozjetý deník", "Zapiš celkem 5 obchodů.", 50, 5, "trades", 0),
+            ("trades_25", "Zkušený trader", "Zapiš celkem 25 obchodů.", 150, 25, "trades", 0),
+            ("trades_100", "Veterán", "Zapiš celkem 100 obchodů.", 400, 100, "trades", 0),
+            ("winrate_60", "Ostrá muška", "Dosáhni winrate 60 % (min. 10 obchodů).", 150, 60, "winrate", 10),
+            ("starting_capital", "Připraven na start", "Nastav si počáteční kapitál v nastavení profilu.", 10, 1, "has_capital", 0),
+            ("friends_3", "Parta se sejde", "Přidej si 3 kamarády.", 30, 3, "friends", 0),
+            ("friends_10", "Sociální motýl", "Přidej si 10 kamarádů.", 100, 10, "friends", 0),
+            ("first_post", "První příspěvek", "Napiš první příspěvek na feed.", 20, 1, "posts", 0),
+            ("posts_10", "Influencer", "Napiš celkem 10 příspěvků na feed.", 80, 10, "posts", 0),
+            ("messages_10", "Ukecaný", "Pošli celkem 10 zpráv.", 20, 10, "messages", 0),
+            ("calendar_event", "Organizovaný", "Vytvoř první událost v kalendáři.", 15, 1, "calendar_events", 0),
+            ("calendar_invite", "Týmový hráč", "Pozvi kamaráda do kalendářové události.", 25, 1, "calendar_invites_sent", 0),
+        ]
+        conn.executemany(
+            """INSERT INTO challenges (challenge_key, title, description, points, target, stat, min_trades)
+               VALUES (?,?,?,?,?,?,?)""",
+            seed_challenges,
         )
 
 

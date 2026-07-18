@@ -5,51 +5,60 @@
   <h1>Novinky</h1>
 </div>
 
-<div class="card news-card">
-  <div class="news-card-header">
+<div class="news-hero">
+  <div class="news-hero-icon">
     <span class="live-dot"></span>
-    <span class="card-title" style="margin:0">Breaking News</span>
-    <span class="muted news-card-source">zdroj: FinancialJuice</span>
   </div>
-  <p class="muted news-card-desc">Novinky v reálném čase. Na novou zprávu tě appka upozorní i toastem v pravém horním rohu.</p>
-  <div class="news-widget-card">
-    <!-- FinancialJuice Widget-->
-    <div id="financialjuice-news-widget-container"></div>
+  <div style="flex:1">
+    <div class="news-hero-title">Breaking News <span class="muted" style="font-weight:400">· živě</span></div>
+    <div class="muted" style="font-size:13px">Zdroj: FinancialJuice · appka tě upozorní toastem na každou novou zprávu</div>
   </div>
+</div>
+
+<div class="news-widget-card">
+  <!-- FinancialJuice Widget-->
+  <div id="financialjuice-news-widget-container"></div>
 </div>
 {% endblock %}
 
 {% block scripts %}
 <script type="text/javascript">
-  var jo = document.createElement("script");
-  jo.type = "text/javascript";
-  jo.id = "FJ-Widgets";
-  var r = Math.floor(Math.random() * (9999 - 0 + 1) + 0);
-  jo.src = "https://feed.financialjuice.com/widgets/widgets.js?r=" + r + "";
-  jo.onload = function () {
-    var options = {};
-    options.container = "financialjuice-news-widget-container";
-    options.mode = "Dark";
-    options.width = "100%";
-    options.height = "700px";
-    options.backColor = "1e222d";
-    options.fontColor = "b2b5be";
-    options.widgetType = "NEWS";
-    new window.FJWidgets.createWidget(options);
-  };
-  document.getElementsByTagName("head")[0].appendChild(jo);
+(function () {
+  var container = document.getElementById("financialjuice-news-widget-container");
+
+  function isLightTheme() {
+    return document.documentElement.getAttribute("data-theme") === "light";
+  }
+
+  function buildWidget() {
+    container.innerHTML = "";
+    var light = isLightTheme();
+    var jo = document.createElement("script");
+    jo.type = "text/javascript";
+    var r = Math.floor(Math.random() * (9999 - 0 + 1) + 0);
+    jo.src = "https://feed.financialjuice.com/widgets/widgets.js?r=" + r + "";
+    jo.onload = function () {
+      var options = {};
+      options.container = "financialjuice-news-widget-container";
+      options.mode = light ? "Light" : "Dark";
+      options.width = "100%";
+      options.height = "700px";
+      options.backColor = light ? "ffffff" : "1e222d";
+      options.fontColor = light ? "17181c" : "b2b5be";
+      options.widgetType = "NEWS";
+      new window.FJWidgets.createWidget(options);
+      window._piplyWatchNews();
+    };
+    document.getElementsByTagName("head")[0].appendChild(jo);
+  }
 
   // --- Toast + zvuk na nove breaking news ---
   // Widget nema oficialni "nova zprava" udalost, takze sledujeme DOM kontejneru
-  // pres MutationObserver. Prvnich pár vterin po nacteni jen zaznamename existujici
+  // pres MutationObserver. Prvnich par vterin po nacteni jen zaznamename existujici
   // zpravy (initial batch), teprve pak zacneme toastovat na skutecne nove polozky.
-  (function watchFinancialJuiceNews() {
-    var container = document.getElementById("financialjuice-news-widget-container");
-    if (!container) return;
-
-    var seen = new Set();
+  var seen = new Set();
+  window._piplyWatchNews = function () {
     var readyForToasts = false;
-
     var observer = new MutationObserver(function (mutations) {
       mutations.forEach(function (m) {
         m.addedNodes.forEach(function (node) {
@@ -64,9 +73,14 @@
         });
       });
     });
-
     observer.observe(container, { childList: true, subtree: true });
     setTimeout(function () { readyForToasts = true; }, 4000);
-  })();
+  };
+
+  buildWidget();
+  // Pokud uzivatel prepne svetly/tmavy rezim primo na teto strance, widget se znovu
+  // nacte se spravnymi barvami (bez ohledu na to, ktery prepinac pouzil - sidebar/mobil).
+  document.addEventListener("piply-theme-changed", buildWidget);
+})();
 </script>
 {% endblock %}

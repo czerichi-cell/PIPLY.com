@@ -13,7 +13,7 @@
   <div class="card-title">Žádosti o přátelství ({{ incoming|length }})</div>
   {% for u in incoming %}
     <div class="person-row">
-      <img class="avatar avatar-md" src="{{ url_for('static', filename=u['avatar_path']) if u['avatar_path'] else url_for('static', filename='img/piply-icon.png') }}" alt="">
+      <img class="avatar avatar-md" src="{{ url_for('static', filename=u['avatar_path']) if u['avatar_path'] else url_for('static', filename='img/default-avatar.png') }}" alt="">
       <div class="info">
         <a href="{{ url_for('profile.view_profile', username=u['username']) }}"><b>{{ u['display_name'] or u['username'] }}</b></a>
         <div class="muted" style="font-size:12.5px">@{{ u['username'] }}</div>
@@ -36,7 +36,7 @@
   <div class="card-title">Odeslané žádosti ({{ outgoing|length }})</div>
   {% for u in outgoing %}
     <div class="person-row">
-      <img class="avatar avatar-md" src="{{ url_for('static', filename=u['avatar_path']) if u['avatar_path'] else url_for('static', filename='img/piply-icon.png') }}" alt="">
+      <img class="avatar avatar-md" src="{{ url_for('static', filename=u['avatar_path']) if u['avatar_path'] else url_for('static', filename='img/default-avatar.png') }}" alt="">
       <div class="info">
         <a href="{{ url_for('profile.view_profile', username=u['username']) }}"><b>{{ u['display_name'] or u['username'] }}</b></a>
         <div class="muted" style="font-size:12.5px">@{{ u['username'] }} · čeká na potvrzení</div>
@@ -58,7 +58,7 @@
     {% for u in accepted %}
       <div class="person-card">
         <a href="{{ url_for('profile.view_profile', username=u['username']) }}" style="display:block">
-          <img class="avatar avatar-md" src="{{ url_for('static', filename=u['avatar_path']) if u['avatar_path'] else url_for('static', filename='img/piply-icon.png') }}" alt="">
+          <img class="avatar avatar-md" src="{{ url_for('static', filename=u['avatar_path']) if u['avatar_path'] else url_for('static', filename='img/default-avatar.png') }}" alt="">
           <div><b>{{ u['display_name'] or u['username'] }}</b></div>
           <div class="muted" style="font-size:12px">@{{ u['username'] }}</div>
         </a>

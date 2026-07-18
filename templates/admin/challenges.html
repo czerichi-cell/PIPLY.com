@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block title %}Správa výzev – Piply{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1>Správa výzev</h1>
+  <a href="{{ url_for('admin_bp.dashboard') }}" class="btn btn-ghost btn-sm">← Admin panel</a>
+</div>
+
+<div class="card">
+  <div class="card-title">Přidat novou výzvu</div>
+  <form method="post" action="{{ url_for('admin_bp.new_challenge') }}">
+    <div class="field-row">
+      <div class="field">
+        <label>Klíč (unikátní, bez mezer)</label>
+        <input type="text" name="challenge_key" placeholder="napr. trades_50" required>
+      </div>
+      <div class="field">
+        <label>Název</label>
+        <input type="text" name="title" required maxlength="80">
+      </div>
+    </div>
+    <div class="field">
+      <label>Popis</label>
+      <input type="text" name="description" maxlength="160">
+    </div>
+    <div class="field-row-3">
+      <div class="field">
+        <label>Sledovaná hodnota</label>
+        <select name="stat">
+          {% for key, label in stat_options %}
+            <option value="{{ key }}">{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="field">
+        <label>Cíl (kolik je potřeba)</label>
+        <input type="number" name="target" min="1" value="1" required>
+      </div>
+      <div class="field">
+        <label>Odměna (body)</label>
+        <input type="number" name="points" min="1" value="20" required>
+      </div>
+    </div>
+    <div class="field" style="max-width:260px">
+      <label>Min. počet obchodů (jen pro winrate)</label>
+      <input type="number" name="min_trades" min="0" value="0">
+    </div>
+    <button type="submit" class="btn">Přidat výzvu</button>
+  </form>
+</div>
+
+<div class="card">
+  <div class="card-title">Existující výzvy</div>
+  <div class="table-wrap">
+  <table>
+    <tr><th>Název</th><th>Cíl</th><th>Body</th><th>Aktivní</th><th></th></tr>
+    {% for it in items %}
+      <tr>
+        <td>{{ it['title'] }} <span class="muted">({{ it['challenge_key'] }})</span></td>
+        <td class="muted">{{ it['target'] }} × {{ it['stat'] }}</td>
+        <td>{{ it['points'] }} b.</td>
+        <td>{{ 'Ano' if it['is_active'] else 'Ne' }}</td>
+        <td style="display:flex; gap:6px">
+          <form method="post" action="{{ url_for('admin_bp.toggle_challenge', challenge_id=it['id']) }}">
+            <button type="submit" class="btn btn-ghost btn-sm">{{ 'Deaktivovat' if it['is_active'] else 'Aktivovat' }}</button>
+          </form>
+          <form method="post" action="{{ url_for('admin_bp.delete_challenge', challenge_id=it['id']) }}" data-confirm="Smazat tuto výzvu? Smažou se i záznamy o tom, kdo si ji už vyzvedl.">
+            <button type="submit" class="btn btn-ghost btn-sm">Smazat</button>
+          </form>
+        </td>
+      </tr>
+    {% endfor %}
+  </table>
+  </div>
+</div>
+{% endblock %}

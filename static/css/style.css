@@ -105,7 +105,8 @@ p { margin: 0 0 8px; }
 }
 .theme-toggle-btn:hover { color: var(--text); background: var(--bg-elevated); }
 
-.nav { display: flex; flex-direction: column; gap: 2px; flex: 1; }
+.nav { display: flex; flex-direction: column; gap: 2px; flex: 1; overflow-y: auto; min-height: 0; }
+.sidebar-footer { flex-shrink: 0; }
 .nav-item {
   display: flex; align-items: center; gap: 10px;
   padding: 9px 10px;
@@ -242,7 +243,7 @@ textarea { resize: vertical; min-height: 70px; }
 }
 .btn:hover { filter: brightness(1.08); }
 .btn-secondary { background: var(--card-hover); color: var(--text); border: 1px solid var(--border); }
-.btn-danger { background: var(--red-dim); color: #ffb3c0; border: 1px solid var(--red); }
+.btn-danger { background: var(--red-dim); color: var(--red); border: 1px solid var(--red); }
 .btn-ghost { background: transparent; color: var(--text-muted); border: 1px solid var(--border); }
 .btn-sm { padding: 5px 11px; font-size: 12.5px; }
 .btn-block { width: 100%; }
@@ -269,8 +270,8 @@ textarea { resize: vertical; min-height: 70px; }
   background: var(--bg-elevated); color: var(--text-muted);
   border: 1px solid var(--border);
 }
-.pill-green { background: var(--green-dim); color: #4ade80; border-color: transparent; }
-.pill-red { background: var(--red-dim); color: #fb7185; border-color: transparent; }
+.pill-green { background: var(--green-dim); color: var(--green); border-color: transparent; }
+.pill-red { background: var(--red-dim); color: var(--red); border-color: transparent; }
 .divider { border: none; border-top: 1px solid var(--border); margin: 14px 0; }
 .empty-state { text-align: center; padding: 50px 20px; color: var(--text-muted); }
 .empty-state svg { width: 40px; height: 40px; stroke: var(--text-faint); fill: none; stroke-width: 1.5; margin-bottom: 10px; }
@@ -285,8 +286,8 @@ textarea { resize: vertical; min-height: 70px; }
 .flash-stack { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
 .flash-stack-center { position: fixed; top: 16px; left: 50%; transform: translateX(-50%); z-index: 50; width: 340px; }
 .flash { padding: 10px 14px; border-radius: var(--radius-sm); font-size: 13.5px; font-weight: 500; }
-.flash-success { background: var(--green-dim); color: #86efac; border: 1px solid #14532d; }
-.flash-error { background: var(--red-dim); color: #fda4af; border: 1px solid #7f1d1d; }
+.flash-success { background: var(--green-dim); color: var(--green); border: 1px solid var(--green); }
+.flash-error { background: var(--red-dim); color: var(--red); border: 1px solid var(--red); }
 
 /* ---------- Stat tiles ---------- */
 
@@ -458,7 +459,7 @@ tr:last-child td { border-bottom: none; }
   }
   .mobile-topbar-logo { display: flex; align-items: center; gap: 8px; font-weight: 700; color: var(--text); }
   .mobile-topbar-logo img { width: 26px; height: 26px; }
-  .mobile-topbar-btn { background: none; border: none; padding: 0; display: flex; }
+  .mobile-topbar-btn { background: none; border: none; padding: 6px; display: flex; color: var(--text); }
 
   .mobile-tabbar {
     display: flex; align-items: center; justify-content: space-around;
@@ -495,7 +496,11 @@ tr:last-child td { border-bottom: none; }
   .mobile-drawer-nav .nav-item { padding: 11px 10px; }
   .mobile-drawer-divider { border-top: 1px solid var(--border); margin: 8px 0; }
 
-  .chat-widget { bottom: 76px; }
+  .chat-widget { bottom: 92px; right: 14px; }
+  .chat-widget-bubble { width: 46px; height: 46px; }
+  .chat-widget-panel { width: calc(100vw - 28px); max-width: 340px; height: 60vh; }
+  .calendar-add-form .field-row { flex-direction: column; gap: 0; }
+  .calendar-add-form .field-row .field { min-width: 0; width: 100%; }
   .cookie-banner { bottom: 60px; }
   .toast-container { top: 66px; right: 12px; left: 12px; max-width: none; }
 }
@@ -855,8 +860,26 @@ html.piply-fading body {
 .comment-delete-btn:hover { color: var(--red); }
 
 /* ============ Novinky (FinancialJuice widget) ============ */
+.news-hero {
+  display: flex; align-items: center; gap: 14px;
+  background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 16px; margin-bottom: 16px;
+}
+.news-hero-icon {
+  width: 40px; height: 40px; border-radius: 50%; flex-shrink: 0;
+  background: var(--red-dim); display: flex; align-items: center; justify-content: center;
+}
+.news-hero-title { font-size: 16px; font-weight: 700; }
+.live-dot {
+  width: 11px; height: 11px; border-radius: 50%; background: var(--red);
+  animation: live-dot-pulse 1.6s ease-in-out infinite;
+}
+@keyframes live-dot-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(214,56,71,0.5); }
+  50% { box-shadow: 0 0 0 6px rgba(214,56,71,0); }
+}
 .news-widget-card {
-  background: #1e222d; border: 1px solid var(--border); border-radius: var(--radius);
+  background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
   padding: 4px; overflow: hidden;
 }
 
@@ -913,12 +936,41 @@ html.piply-fading body {
 /* ============ Banner na profilu ============ */
 .profile-header-card {
   position: relative; background-size: cover; background-position: center;
-  min-height: 140px; display: flex; align-items: flex-end;
+  min-height: 140px; display: flex; align-items: center; padding: 20px;
   overflow: hidden;
 }
 .profile-header-overlay {
   position: absolute; inset: 0;
-  background: linear-gradient(180deg, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0.75) 100%);
+  background: linear-gradient(180deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.55) 100%);
 }
+.profile-header-top { display: flex; align-items: center; gap: 16px; position: relative; z-index: 1; }
+.profile-header-name {
+  font-size: 20px; display: flex; align-items: center; gap: 6px; margin: 0;
+}
+/* Kdyz je za jmenem fotka bannery, text musi byt vzdy citelny bez ohledu na svetly/tmavy rezim appky */
+.profile-header-name.has-banner {
+  color: #fff !important; -webkit-text-fill-color: #fff !important;
+  text-shadow: 0 1px 4px rgba(0,0,0,0.6);
+}
+.profile-meta-card { margin-top: 12px; }
+.profile-meta-row { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
+.profile-actions { display: flex; gap: 8px; flex-wrap: wrap; }
 .profile-banner-current-preview { margin-bottom: 8px; }
 .profile-banner-current-preview img { width: 100%; max-width: 400px; height: 90px; object-fit: cover; border-radius: var(--radius-sm); }
+
+/* ============ Vyber vyrezu obrazku (avatar/banner) ============ */
+.reposition-frame {
+  position: relative; overflow: hidden; cursor: move; user-select: none;
+  border: 1px solid var(--border); background: var(--bg-elevated);
+  touch-action: none;
+}
+.reposition-frame img {
+  width: 100%; height: 100%; object-fit: cover; pointer-events: none;
+}
+.reposition-frame-round { width: 120px; height: 120px; border-radius: 50%; }
+.reposition-frame-wide { width: 100%; max-width: 480px; height: 120px; border-radius: var(--radius-sm); margin-top: 10px; }
+.reposition-frame.is-dragging { border-color: var(--accent); }
+.reposition-frame::after {
+  content: "⠿"; position: absolute; bottom: 6px; right: 8px; color: rgba(255,255,255,0.7);
+  font-size: 14px; text-shadow: 0 1px 2px rgba(0,0,0,0.6); pointer-events: none;
+}

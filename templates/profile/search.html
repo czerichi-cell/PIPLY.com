@@ -14,7 +14,7 @@
   <div class="people-grid">
   {% for u in results %}
     <a class="person-card" href="{{ url_for('profile.view_profile', username=u['username']) }}">
-      <img class="avatar avatar-md" src="{{ url_for('static', filename=u['avatar_path']) if u['avatar_path'] else url_for('static', filename='img/piply-icon.png') }}" alt="">
+      <img class="avatar avatar-md" src="{{ url_for('static', filename=u['avatar_path']) if u['avatar_path'] else url_for('static', filename='img/default-avatar.png') }}" alt="">
       <div><b>{{ u['display_name'] or u['username'] }}</b></div>
       <div class="muted" style="font-size:12px">@{{ u['username'] }}</div>
     </a>

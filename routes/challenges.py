@@ -5,35 +5,6 @@ from helpers import login_required
 
 bp = Blueprint("challenges_bp", __name__)
 
-CHALLENGES = [
-    {"key": "first_trade", "title": "První obchod", "desc": "Zapiš svůj první obchod do deníku.",
-     "points": 20, "target": 1, "stat": "trades"},
-    {"key": "trades_5", "title": "Rozjetý deník", "desc": "Zapiš celkem 5 obchodů.",
-     "points": 50, "target": 5, "stat": "trades"},
-    {"key": "trades_25", "title": "Zkušený trader", "desc": "Zapiš celkem 25 obchodů.",
-     "points": 150, "target": 25, "stat": "trades"},
-    {"key": "trades_100", "title": "Veterán", "desc": "Zapiš celkem 100 obchodů.",
-     "points": 400, "target": 100, "stat": "trades"},
-    {"key": "winrate_60", "title": "Ostrá muška", "desc": "Dosáhni winrate 60 % (min. 10 obchodů).",
-     "points": 150, "target": 60, "stat": "winrate", "min_trades": 10},
-    {"key": "starting_capital", "title": "Připraven na start", "desc": "Nastav si počáteční kapitál v nastavení profilu.",
-     "points": 10, "target": 1, "stat": "has_capital"},
-    {"key": "friends_3", "title": "Parta se sejde", "desc": "Přidej si 3 kamarády.",
-     "points": 30, "target": 3, "stat": "friends"},
-    {"key": "friends_10", "title": "Sociální motýl", "desc": "Přidej si 10 kamarádů.",
-     "points": 100, "target": 10, "stat": "friends"},
-    {"key": "first_post", "title": "První příspěvek", "desc": "Napiš první příspěvek na feed.",
-     "points": 20, "target": 1, "stat": "posts"},
-    {"key": "posts_10", "title": "Influencer", "desc": "Napiš celkem 10 příspěvků na feed.",
-     "points": 80, "target": 10, "stat": "posts"},
-    {"key": "messages_10", "title": "Ukecaný", "desc": "Pošli celkem 10 zpráv.",
-     "points": 20, "target": 10, "stat": "messages"},
-    {"key": "calendar_event", "title": "Organizovaný", "desc": "Vytvoř první událost v kalendáři.",
-     "points": 15, "target": 1, "stat": "calendar_events"},
-    {"key": "calendar_invite", "title": "Týmový hráč", "desc": "Pozvi kamaráda do kalendářové události.",
-     "points": 25, "target": 1, "stat": "calendar_invites_sent"},
-]
-
 
 def _compute_stats(user_id):
     trades_row = query_one("SELECT COUNT(*) AS c FROM trades WHERE user_id=?", (user_id,))
@@ -73,7 +44,7 @@ def _compute_stats(user_id):
 
 
 def _progress_value(stats, ch):
-    if ch["stat"] == "winrate" and stats.get("trades", 0) < ch.get("min_trades", 0):
+    if ch["stat"] == "winrate" and stats.get("trades", 0) < (ch["min_trades"] or 0):
         return 0
     return stats.get(ch["stat"], 0)
 
@@ -109,19 +80,21 @@ def get_user_owned_banners(user_id):
 @login_required
 def list_challenges():
     stats = _compute_stats(g.user["id"])
+    all_challenges = query_all("SELECT * FROM challenges WHERE is_active=1 ORDER BY points")
     claimed_keys = {
         r["challenge_key"] for r in query_all(
             "SELECT challenge_key FROM challenge_claims WHERE user_id=?", (g.user["id"],)
         )
     }
     items = []
-    for ch in CHALLENGES:
+    for ch in all_challenges:
         progress = _progress_value(stats, ch)
         items.append({
-            **ch,
+            "key": ch["challenge_key"], "title": ch["title"], "desc": ch["description"],
+            "points": ch["points"], "target": ch["target"], "stat": ch["stat"],
             "progress": min(progress, ch["target"]),
             "complete": progress >= ch["target"],
-            "claimed": ch["key"] in claimed_keys,
+            "claimed": ch["challenge_key"] in claimed_keys,
         })
     return render_template("challenges/list.html", challenges=items, points=get_user_points(g.user["id"]))
 
@@ -129,7 +102,7 @@ def list_challenges():
 @bp.route("/challenges/<key>/claim", methods=["POST"])
 @login_required
 def claim_challenge(key):
-    ch = next((c for c in CHALLENGES if c["key"] == key), None)
+    ch = query_one("SELECT * FROM challenges WHERE challenge_key=? AND is_active=1", (key,))
     if not ch:
         flash("Neznámá výzva.", "error")
         return redirect(url_for("challenges_bp.list_challenges"))

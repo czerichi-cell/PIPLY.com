@@ -10,20 +10,22 @@
 {% endif %}
 
 <div class="card">
-  <form method="post" enctype="multipart/form-data">
-    <div style="display:flex; gap:16px; align-items:center; margin-bottom:16px">
-      <div class="upload-zone upload-zone-round" data-upload-zone>
-        <input type="file" name="avatar" accept="image/*">
-        <div class="upload-empty"{% if current_user['avatar_path'] %} style="display:none"{% endif %}>
-          <svg viewBox="0 0 24 24"><path d="M12 16V4M12 4l-4 4M12 4l4 4M4 20h16"/></svg>
-          nahrát
-        </div>
-        <div class="upload-preview"{% if not current_user['avatar_path'] %} style="display:none"{% endif %}>
-          <img class="upload-preview-img" src="{{ url_for('static', filename=current_user['avatar_path']) if current_user['avatar_path'] else '' }}" alt="">
-          <div class="upload-preview-overlay">Změnit fotku</div>
-        </div>
+  <form method="post" enctype="multipart/form-data" id="profile-form">
+    <div class="field">
+      <label>Profilová fotka</label>
+      <div class="reposition-frame reposition-frame-round" id="avatar-reposition-frame">
+        <img id="avatar-reposition-img"
+             src="{{ url_for('static', filename=current_user['avatar_path']) if current_user['avatar_path'] else url_for('static', filename='img/default-avatar.png') }}"
+             style="object-position:{{ current_user['avatar_position'] or '50% 50%' }}" alt="">
       </div>
-      <div class="muted" style="font-size:13px">Klikni nebo přetáhni obrázek pro nastavení profilové fotky.</div>
+      <div style="display:flex; gap:8px; align-items:center; margin-top:8px">
+        <label class="btn btn-secondary btn-sm" style="cursor:pointer; margin:0">
+          Vybrat fotku
+          <input type="file" name="avatar" id="avatar-file-input" accept="image/*" style="display:none">
+        </label>
+        <span class="muted" style="font-size:12.5px">Přetažením ve fotce vybereš, co bude vidět.</span>
+      </div>
+      <input type="hidden" name="avatar_position" id="avatar-position-input" value="{{ current_user['avatar_position'] or '50% 50%' }}">
     </div>
 
     <div class="field">
@@ -41,32 +43,30 @@
 
     <div class="field">
       <label>Banner profilu</label>
-      {% if current_user['banner_path'] or current_user['selected_banner_key'] %}
-        <div class="profile-banner-current-preview">
-          {% if current_user['banner_path'] %}
-            <img src="{{ url_for('static', filename=current_user['banner_path']) }}" alt="">
-          {% else %}
-            {% for b in owned_banners %}
-              {% if b['item_key'] == current_user['selected_banner_key'] %}
-                <img src="{{ url_for('static', filename=b['image_path']) }}" alt="">
-              {% endif %}
-            {% endfor %}
-          {% endif %}
-        </div>
-      {% endif %}
       {% if owned_banners %}
-        <select name="banner_key" style="margin-bottom:8px">
+        <select name="banner_key" id="banner-select" style="margin-bottom:8px">
           <option value="">— nechat beze změny —</option>
           <option value="__none__">Žádný banner</option>
           {% for b in owned_banners %}
-            <option value="{{ b['item_key'] }}" {{ 'selected' if current_user['selected_banner_key'] == b['item_key'] }}>{{ b['name'] }}</option>
+            <option value="{{ b['item_key'] }}" data-image="{{ url_for('static', filename=b['image_path']) }}" {{ 'selected' if current_user['selected_banner_key'] == b['item_key'] }}>{{ b['name'] }}</option>
           {% endfor %}
         </select>
       {% else %}
         <p class="muted" style="margin-bottom:8px">Zatím nevlastníš žádný banner z <a href="{{ url_for('challenges_bp.shop') }}">obchodu</a> – ale klidně nahraj vlastní obrázek:</p>
       {% endif %}
-      <input type="file" name="banner" accept="image/*">
-      <p class="muted" style="margin-top:6px">Doporučený rozměr vlastního banneru: 1200×300 px (poměr stran 4:1).</p>
+
+      <div class="reposition-frame reposition-frame-wide" id="banner-reposition-frame" {% if not banner_url %}style="display:none"{% endif %}>
+        <img id="banner-reposition-img" src="{{ banner_url or '' }}" style="object-position:{{ current_user['banner_position'] or '50% 50%' }}" alt="">
+      </div>
+      <input type="hidden" name="banner_position" id="banner-position-input" value="{{ current_user['banner_position'] or '50% 50%' }}">
+
+      <div style="margin-top:8px">
+        <label class="btn btn-secondary btn-sm" style="cursor:pointer; margin:0">
+          Nahrát vlastní banner
+          <input type="file" name="banner" id="banner-file-input" accept="image/*" style="display:none">
+        </label>
+      </div>
+      <p class="muted" style="margin-top:6px">Doporučený rozměr vlastního banneru: 1200×300 px (poměr stran 4:1). Po nahrání ho stejně jako fotku můžeš přetažením zarovnat.</p>
     </div>
 
     <button type="submit" class="btn">Uložit profil</button>

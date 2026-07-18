@@ -69,6 +69,10 @@ def login():
             flash("Neplatné přihlašovací jméno nebo heslo.", "error")
             return render_template("auth/login.html")
 
+        if user["is_banned"]:
+            flash("Tento účet byl zablokován. Pokud si myslíš, že jde o omyl, kontaktuj podporu.", "error")
+            return render_template("auth/login.html")
+
         session.clear()
         session["user_id"] = user["id"]
         session.permanent = bool(request.form.get("remember"))

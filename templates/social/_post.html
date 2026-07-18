@@ -1,7 +1,7 @@
 <div class="post" id="post-{{ post['id'] }}">
   <div class="post-head">
     <a href="{{ url_for('profile.view_profile', username=post['username']) }}">
-      <img class="avatar avatar-md" src="{{ url_for('static', filename=post['avatar_path']) if post['avatar_path'] else url_for('static', filename='img/piply-icon.png') }}" alt="">
+      <img class="avatar avatar-md" src="{{ url_for('static', filename=post['avatar_path']) if post['avatar_path'] else url_for('static', filename='img/default-avatar.png') }}" alt="">
     </a>
     <div>
       <div class="who">

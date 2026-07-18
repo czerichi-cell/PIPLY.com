@@ -1,7 +1,7 @@
 {% if conversations %}
   {% for c in conversations %}
     <a class="conv-row" href="{{ url_for('messages_bp.thread', username=c['username']) }}">
-      <img class="avatar avatar-md" src="{{ url_for('static', filename=c['avatar_path']) if c['avatar_path'] else url_for('static', filename='img/piply-icon.png') }}" alt="">
+      <img class="avatar avatar-md" src="{{ url_for('static', filename=c['avatar_path']) if c['avatar_path'] else url_for('static', filename='img/default-avatar.png') }}" alt="">
       <div style="flex:1; min-width:0">
         <div style="display:flex; justify-content:space-between">
           <b>{{ c['display_name'] or c['username'] }}</b>

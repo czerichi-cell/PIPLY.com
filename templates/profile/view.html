@@ -2,24 +2,26 @@
 {% block title %}{{ profile_user['display_name'] or profile_user['username'] }} – Piply{% endblock %}
 {% block content %}
 
-<div class="card profile-header-card" style="{% if banner_url %}background-image:url('{{ banner_url }}');{% endif %}">
+<div class="card profile-header-card" style="{% if banner_url %}background-image:url('{{ banner_url }}'); background-position:{{ profile_user['banner_position'] or '50% 50%' }};{% endif %}">
   {% if banner_url %}<div class="profile-header-overlay"></div>{% endif %}
-  <div style="display:flex; gap:18px; align-items:center; flex-wrap:wrap; position:relative">
-    <img class="avatar avatar-lg" src="{{ url_for('static', filename=profile_user['avatar_path']) if profile_user['avatar_path'] else url_for('static', filename='img/piply-icon.png') }}" alt="">
-    <div style="flex:1; min-width:200px">
-      <h1 style="font-size:20px; display:flex; align-items:center" class="{{ 'admin-name' if profile_user['is_admin'] }}">
-        {{ profile_user['display_name'] or profile_user['username'] }}
-        {% if profile_user['is_admin'] %}<span class="admin-shield" title="Admin">🛡️</span>{% endif %}
-        {% if badges %}
-          <span class="profile-badges" title="{{ badges|map(attribute='name')|join(', ') }}">
-            {% for b in badges %}{{ b.emoji }}{% endfor %}
-          </span>
-        {% endif %}
-      </h1>
-      <div class="muted">@{{ profile_user['username'] }} · {{ friends_count }} přátel</div>
-      {% if profile_user['bio'] %}<p style="margin-top:8px">{{ profile_user['bio'] }}</p>{% endif %}
-    </div>
-    <div style="display:flex; gap:8px; align-self:flex-start">
+  <div class="profile-header-top">
+    <img class="avatar avatar-lg" style="object-position:{{ profile_user['avatar_position'] or '50% 50%' }}" src="{{ url_for('static', filename=profile_user['avatar_path']) if profile_user['avatar_path'] else url_for('static', filename='img/default-avatar.png') }}" alt="">
+    <h1 class="profile-header-name {{ 'admin-name' if profile_user['is_admin'] }} {{ 'has-banner' if banner_url }}">
+      {{ profile_user['display_name'] or profile_user['username'] }}
+      {% if profile_user['is_admin'] %}<span class="admin-shield" title="Admin">🛡️</span>{% endif %}
+      {% if badges %}
+        <span class="profile-badges" title="{{ badges|map(attribute='name')|join(', ') }}">
+          {% for b in badges %}{{ b.emoji }}{% endfor %}
+        </span>
+      {% endif %}
+    </h1>
+  </div>
+</div>
+
+<div class="card profile-meta-card">
+  <div class="profile-meta-row">
+    <div class="muted">@{{ profile_user['username'] }} · {{ friends_count }} přátel</div>
+    <div class="profile-actions">
       {% if is_me %}
         <a href="{{ url_for('profile.edit_profile') }}" class="btn btn-secondary btn-sm">Upravit profil</a>
       {% else %}
@@ -50,6 +52,7 @@
       {% endif %}
     </div>
   </div>
+  {% if profile_user['bio'] %}<p style="margin-top:10px">{{ profile_user['bio'] }}</p>{% endif %}
 </div>
 
 <div class="stat-grid">

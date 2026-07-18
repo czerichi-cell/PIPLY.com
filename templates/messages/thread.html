@@ -4,7 +4,7 @@
 <div class="page-header">
   <h1>
     <a href="{{ url_for('profile.view_profile', username=other['username']) }}" style="display:flex; align-items:center; gap:10px">
-      <img class="avatar avatar-sm" src="{{ url_for('static', filename=other['avatar_path']) if other['avatar_path'] else url_for('static', filename='img/piply-icon.png') }}" alt="">
+      <img class="avatar avatar-sm" src="{{ url_for('static', filename=other['avatar_path']) if other['avatar_path'] else url_for('static', filename='img/default-avatar.png') }}" alt="">
       {{ other['display_name'] or other['username'] }}
     </a>
   </h1>

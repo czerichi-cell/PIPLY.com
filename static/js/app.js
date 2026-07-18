@@ -207,8 +207,108 @@ const PIPLY_EMOJIS = Object.values(PIPLY_EMOJI_CATEGORIES).flat();
 
 // --- Chat: odeslani zpravy (text/obrazek/gif) bez reloadu + polling ---
 
-// --- Sdilene funkce pro vykresleni "pozvanka do kalendare" kartiky v chatu ---
-// (pouzivaji jak plna stranka zprav, tak plovouci chat widget)
+// --- Nastroj na vyber vyrezu (avatar / banner): tazenim ve fotce vybiras, co bude videt ---
+
+function initRepositionTool(frameEl, imgEl, hiddenInput) {
+  if (!frameEl || !imgEl || !hiddenInput) return;
+
+  function parsePosition(str) {
+    const parts = (str || "50% 50%").replace(/%/g, "").split(" ").map((s) => parseFloat(s));
+    return { x: isNaN(parts[0]) ? 50 : parts[0], y: isNaN(parts[1]) ? 50 : parts[1] };
+  }
+
+  let pos = parsePosition(hiddenInput.value);
+  let dragging = false;
+  let startX = 0, startY = 0, startPos = pos;
+
+  function apply() {
+    imgEl.style.objectPosition = pos.x + "% " + pos.y + "%";
+    hiddenInput.value = pos.x + "% " + pos.y + "%";
+  }
+
+  function down(clientX, clientY) {
+    dragging = true;
+    startX = clientX; startY = clientY; startPos = { ...pos };
+    frameEl.classList.add("is-dragging");
+  }
+  function move(clientX, clientY) {
+    if (!dragging) return;
+    const rect = frameEl.getBoundingClientRect();
+    const dx = ((clientX - startX) / rect.width) * 100;
+    const dy = ((clientY - startY) / rect.height) * 100;
+    pos.x = Math.min(100, Math.max(0, startPos.x - dx));
+    pos.y = Math.min(100, Math.max(0, startPos.y - dy));
+    apply();
+  }
+  function up() {
+    dragging = false;
+    frameEl.classList.remove("is-dragging");
+  }
+
+  frameEl.addEventListener("mousedown", (e) => { down(e.clientX, e.clientY); e.preventDefault(); });
+  window.addEventListener("mousemove", (e) => move(e.clientX, e.clientY));
+  window.addEventListener("mouseup", up);
+  frameEl.addEventListener("touchstart", (e) => { const t = e.touches[0]; down(t.clientX, t.clientY); }, { passive: true });
+  frameEl.addEventListener("touchmove", (e) => { const t = e.touches[0]; move(t.clientX, t.clientY); }, { passive: true });
+  frameEl.addEventListener("touchend", up);
+
+  // reset pozice na stred, kdyz se nahradi obrazek novym souborem
+  return { resetCenter: () => { pos = { x: 50, y: 50 }; apply(); } };
+}
+
+(function initProfileRepositionTools() {
+  const avatarFrame = document.getElementById("avatar-reposition-frame");
+  const avatarImg = document.getElementById("avatar-reposition-img");
+  const avatarPosInput = document.getElementById("avatar-position-input");
+  const avatarFileInput = document.getElementById("avatar-file-input");
+  if (!avatarFrame) return; // nejsme na strance Upravit profil
+
+  const avatarTool = initRepositionTool(avatarFrame, avatarImg, avatarPosInput);
+  avatarFileInput.addEventListener("change", () => {
+    const file = avatarFileInput.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      avatarImg.src = e.target.result;
+      avatarTool && avatarTool.resetCenter();
+    };
+    reader.readAsDataURL(file);
+  });
+
+  const bannerFrame = document.getElementById("banner-reposition-frame");
+  const bannerImg = document.getElementById("banner-reposition-img");
+  const bannerPosInput = document.getElementById("banner-position-input");
+  const bannerFileInput = document.getElementById("banner-file-input");
+  const bannerSelect = document.getElementById("banner-select");
+  const bannerTool = initRepositionTool(bannerFrame, bannerImg, bannerPosInput);
+
+  bannerFileInput.addEventListener("change", () => {
+    const file = bannerFileInput.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      bannerImg.src = e.target.result;
+      bannerFrame.style.display = "";
+      bannerTool && bannerTool.resetCenter();
+    };
+    reader.readAsDataURL(file);
+    if (bannerSelect) bannerSelect.value = ""; // vlastni soubor ma prednost pred vyberem z obchodu
+  });
+
+  if (bannerSelect) {
+    bannerSelect.addEventListener("change", () => {
+      const opt = bannerSelect.options[bannerSelect.selectedIndex];
+      const imgUrl = opt.dataset.image;
+      if (imgUrl) {
+        bannerImg.src = imgUrl;
+        bannerFrame.style.display = "";
+        bannerTool && bannerTool.resetCenter();
+      } else if (bannerSelect.value === "__none__") {
+        bannerFrame.style.display = "none";
+      }
+    });
+  }
+})();
 
 function buildInviteCardHTML(invite) {
   let actionsHtml;
@@ -536,7 +636,10 @@ function wireInviteButtons(container) {
     }
   }
 
-  document.addEventListener("click", () => closeAllPickers());
+  document.addEventListener("click", (e) => {
+    if (e.target.closest(".picker-popover")) return;
+    closeAllPickers();
+  });
 
   // --- Polling na nove prichozi zpravy ---
 
@@ -710,6 +813,7 @@ function wireInviteButtons(container) {
       try { localStorage.setItem("piply_theme", "light"); } catch (err) { /* ticho */ }
     }
     syncIcons();
+    document.dispatchEvent(new CustomEvent("piply-theme-changed", { detail: { light: !isLight } }));
   }
 
   if (btn) btn.addEventListener("click", toggle);

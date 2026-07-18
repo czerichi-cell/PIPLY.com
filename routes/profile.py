@@ -110,6 +110,7 @@ def edit_profile():
         saved = save_upload(file, "avatars")
         if saved:
             avatar_path = saved
+        avatar_position = request.form.get("avatar_position", "").strip() or g.user["avatar_position"] or "50% 50%"
 
         banner_path = g.user["banner_path"]
         selected_banner_key = g.user["selected_banner_key"]
@@ -126,11 +127,13 @@ def edit_profile():
             else:
                 selected_banner_key = chosen_banner_key
                 banner_path = None
+        banner_position = request.form.get("banner_position", "").strip() or g.user["banner_position"] or "50% 50%"
 
         execute(
             """UPDATE users SET display_name=?, bio=?, avatar_path=?, starting_capital=?,
-               banner_path=?, selected_banner_key=? WHERE id=?""",
-            (display_name, bio, avatar_path, starting_capital, banner_path, selected_banner_key, g.user["id"]),
+               banner_path=?, selected_banner_key=?, avatar_position=?, banner_position=? WHERE id=?""",
+            (display_name, bio, avatar_path, starting_capital, banner_path, selected_banner_key,
+             avatar_position, banner_position, g.user["id"]),
         )
         flash("Profil uložen.", "success")
         return redirect(url_for("profile.view_profile", username=g.user["username"]))
@@ -138,7 +141,16 @@ def edit_profile():
     from routes.challenges import get_user_owned_banners
     settings = query_one("SELECT * FROM user_settings WHERE user_id = ?", (g.user["id"],))
     owned_banners = get_user_owned_banners(g.user["id"])
-    return render_template("profile/edit.html", settings=settings, owned_banners=owned_banners)
+
+    banner_url = None
+    if g.user["banner_path"]:
+        banner_url = url_for("static", filename=g.user["banner_path"])
+    elif g.user["selected_banner_key"]:
+        banner_item = query_one("SELECT * FROM shop_items WHERE item_key=?", (g.user["selected_banner_key"],))
+        if banner_item and banner_item["image_path"]:
+            banner_url = url_for("static", filename=banner_item["image_path"])
+
+    return render_template("profile/edit.html", settings=settings, owned_banners=owned_banners, banner_url=banner_url)
 
 
 @bp.route("/settings/privacy", methods=["POST"])

@@ -13,6 +13,10 @@ CREATE TABLE IF NOT EXISTS users (
     is_admin INTEGER DEFAULT 0,
     has_seen_tutorial INTEGER DEFAULT 0,
     banner_path TEXT,
+    selected_banner_key TEXT,
+    is_banned INTEGER DEFAULT 0,
+    avatar_position TEXT DEFAULT '50% 50%',
+    banner_position TEXT DEFAULT '50% 50%',
     created_at TEXT DEFAULT (datetime('now'))
 );
 
@@ -163,6 +167,19 @@ CREATE TABLE IF NOT EXISTS shop_items (
     emoji TEXT,
     image_path TEXT,
     cost INTEGER NOT NULL DEFAULT 50,
+    is_active INTEGER DEFAULT 1,
+    created_at TEXT DEFAULT (datetime('now'))
+);
+
+CREATE TABLE IF NOT EXISTS challenges (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    challenge_key TEXT UNIQUE NOT NULL,
+    title TEXT NOT NULL,
+    description TEXT,
+    points INTEGER NOT NULL DEFAULT 20,
+    target INTEGER NOT NULL DEFAULT 1,
+    stat TEXT NOT NULL,
+    min_trades INTEGER DEFAULT 0,
     is_active INTEGER DEFAULT 1,
     created_at TEXT DEFAULT (datetime('now'))
 );
