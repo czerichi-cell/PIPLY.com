@@ -496,13 +496,13 @@ tr:last-child td { border-bottom: none; }
   .mobile-drawer-nav .nav-item { padding: 11px 10px; }
   .mobile-drawer-divider { border-top: 1px solid var(--border); margin: 8px 0; }
 
-  .chat-widget { bottom: 92px; right: 14px; }
-  .chat-widget-bubble { width: 46px; height: 46px; }
-  .chat-widget-panel { width: calc(100vw - 28px); max-width: 340px; height: 60vh; }
-  .calendar-add-form .field-row { flex-direction: column; gap: 0; }
-  .calendar-add-form .field-row .field { min-width: 0; width: 100%; }
-  .cookie-banner { bottom: 60px; }
-  .toast-container { top: 66px; right: 12px; left: 12px; max-width: none; }
+  .chat-widget { bottom: 92px !important; right: 14px !important; }
+  .chat-widget-bubble { width: 46px !important; height: 46px !important; }
+  .chat-widget-panel { width: calc(100vw - 28px) !important; max-width: 340px !important; height: 60vh !important; }
+  .calendar-add-form .field-row { flex-direction: column !important; gap: 0 !important; }
+  .calendar-add-form .field-row .field { min-width: 0 !important; width: 100% !important; }
+  .cookie-banner { bottom: 60px !important; }
+  .toast-container { top: 66px !important; right: 12px !important; left: 12px !important; max-width: none !important; }
 }
 
 /* ---------- Vlastni confirm modal (nahrazuje native confirm()) ---------- */
