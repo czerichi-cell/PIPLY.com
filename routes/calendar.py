@@ -162,6 +162,55 @@ def new_event():
     return redirect(url_for("calendar_bp.view", month=month_key or event_date[:7], date=event_date))
 
 
+@bp.route("/<int:event_id>/detail")
+@login_required
+def event_detail(event_id):
+    me = g.user["id"]
+    ev = query_one(
+        """SELECT calendar_events.*, users.username AS owner_username, users.display_name AS owner_display_name
+           FROM calendar_events JOIN users ON users.id = calendar_events.user_id
+           WHERE calendar_events.id=?""",
+        (event_id,),
+    )
+    if not ev:
+        return {"error": "not_found"}, 404
+
+    is_owner = ev["user_id"] == me
+    has_access = is_owner or query_one(
+        "SELECT 1 FROM calendar_invites WHERE event_id=? AND invitee_id=? AND status='accepted'",
+        (event_id, me),
+    )
+    if not has_access:
+        return {"error": "forbidden"}, 403
+
+    invites = query_all(
+        """SELECT calendar_invites.status, users.username, users.display_name
+           FROM calendar_invites JOIN users ON users.id = calendar_invites.invitee_id
+           WHERE calendar_invites.event_id=?
+           ORDER BY calendar_invites.created_at""",
+        (event_id,),
+    )
+
+    return {
+        "id": ev["id"],
+        "title": ev["title"],
+        "notes": ev["notes"],
+        "date": ev["event_date"],
+        "time": ev["event_time"],
+        "kind": ev["kind"],
+        "is_done": bool(ev["is_done"]),
+        "color": ev["color"] or "#7ed957",
+        "icon": ev["icon"] or "📌",
+        "priority": ev["priority"] or "medium",
+        "is_owner": is_owner,
+        "owner_name": ev["owner_display_name"] or ev["owner_username"],
+        "invites": [
+            {"name": i["display_name"] or i["username"], "status": i["status"]}
+            for i in invites
+        ],
+    }
+
+
 @bp.route("/<int:event_id>/toggle", methods=["POST"])
 @login_required
 def toggle_event(event_id):

@@ -310,6 +310,97 @@ function initRepositionTool(frameEl, imgEl, hiddenInput) {
   }
 })();
 
+// --- Kalendar: detail udalosti po kliknuti na cip (popis, kdo je pozvany, akce) ---
+
+(function initCalendarEventModal() {
+  const overlay = document.getElementById("event-modal-overlay");
+  if (!overlay) return;
+
+  const loading = document.getElementById("event-modal-loading");
+  const body = document.getElementById("event-modal-body");
+  const iconEl = document.getElementById("event-modal-icon");
+  const titleEl = document.getElementById("event-modal-title");
+  const metaEl = document.getElementById("event-modal-meta");
+  const notesEl = document.getElementById("event-modal-notes");
+  const invitesEl = document.getElementById("event-modal-invites");
+  const actionsEl = document.getElementById("event-modal-actions");
+  const closeBtn = document.getElementById("event-modal-close");
+  const monthKey = window.PIPLY_CALENDAR_MONTH_KEY || "";
+
+  const STATUS_LABELS = {
+    accepted: { text: "Přijato", cls: "invite-status-accepted" },
+    pending: { text: "Čeká na odpověď", cls: "invite-status-pending" },
+    declined: { text: "Odmítnuto", cls: "invite-status-declined" },
+  };
+
+  function closeModal() {
+    overlay.classList.remove("open");
+  }
+  closeBtn.addEventListener("click", closeModal);
+  overlay.addEventListener("click", (e) => { if (e.target === overlay) closeModal(); });
+
+  async function openModal(eventId) {
+    overlay.classList.add("open");
+    loading.style.display = "block";
+    body.style.display = "none";
+    try {
+      const res = await fetch(`/calendar/${eventId}/detail`);
+      if (!res.ok) throw new Error("fetch failed");
+      const data = await res.json();
+
+      iconEl.textContent = data.icon;
+      titleEl.textContent = data.title;
+      titleEl.style.color = data.color;
+
+      let metaHtml = data.date + (data.time ? " · " + data.time : "");
+      if (!data.is_owner) metaHtml += ` · vytvořil(a) ${data.owner_name}`;
+      metaEl.innerHTML = metaHtml;
+
+      notesEl.textContent = data.notes || "";
+      notesEl.style.display = data.notes ? "block" : "none";
+
+      if (data.invites.length) {
+        invitesEl.innerHTML = "<div class='event-modal-invites-title'>Pozvaní</div>" + data.invites.map((inv) => {
+          const s = STATUS_LABELS[inv.status] || STATUS_LABELS.pending;
+          return `<div class="event-modal-invite-row"><span>${inv.name}</span><span class="invite-status-pill ${s.cls}">${s.text}</span></div>`;
+        }).join("");
+        invitesEl.style.display = "block";
+      } else {
+        invitesEl.style.display = "none";
+      }
+
+      let actionsHtml = "";
+      if (data.is_owner) {
+        if (data.kind === "task") {
+          actionsHtml += `
+            <form method="post" action="/calendar/${data.id}/toggle">
+              <input type="hidden" name="month_key" value="${monthKey}">
+              <button type="submit" class="btn btn-secondary btn-sm">${data.is_done ? "Označit jako nesplněné" : "Označit jako splněné"}</button>
+            </form>`;
+        }
+        actionsHtml += `
+          <form method="post" action="/calendar/${data.id}/delete" data-confirm="Opravdu smazat tuto událost?">
+            <input type="hidden" name="month_key" value="${monthKey}">
+            <button type="submit" class="btn btn-ghost btn-sm" style="color:var(--red)">Smazat</button>
+          </form>`;
+      }
+      actionsEl.innerHTML = actionsHtml;
+
+      loading.style.display = "none";
+      body.style.display = "block";
+    } catch (err) {
+      loading.textContent = "Nepodařilo se načíst detail.";
+    }
+  }
+
+  document.querySelectorAll(".calendar-event-chip").forEach((chip) => {
+    chip.addEventListener("click", (e) => {
+      if (e.target.closest(".calendar-chip-check-form")) return;
+      openModal(chip.dataset.eventId);
+    });
+  });
+})();
+
 function buildInviteCardHTML(invite) {
   let actionsHtml;
   if (invite.status === "pending" && invite.invitee_id === window.PIPLY_ME_ID) {

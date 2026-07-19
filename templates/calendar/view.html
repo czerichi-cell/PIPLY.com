@@ -112,23 +112,18 @@
           {% for e in events_by_day.get(date_str, []) %}
             <div class="calendar-event-chip {{ 'is-task' if e['kind']=='task' }} {{ 'is-done' if e['is_done'] }} {{ 'is-shared' if e['user_id'] != current_user['id'] }} priority-{{ e['priority'] or 'medium' }}"
                  style="border-left-color:{{ e['color'] or '#7ed957' }}"
-                 title="{{ e['notes'] or '' }}">
-              <span class="calendar-event-icon">{{ e['icon'] or '📌' }}</span>
+                 data-event-id="{{ e['id'] }}">
               {% if e['kind'] == 'task' and e['user_id'] == current_user['id'] %}
-                <form method="post" action="{{ url_for('calendar_bp.toggle_event', event_id=e['id']) }}">
+                <form method="post" action="{{ url_for('calendar_bp.toggle_event', event_id=e['id']) }}" class="calendar-chip-check-form">
                   <input type="hidden" name="month_key" value="{{ month_key }}">
-                  <button type="submit" title="Splněno/nesplněno">{{ '☑' if e['is_done'] else '☐' }}</button>
+                  <button type="submit" class="calendar-chip-check" title="Splněno/nesplněno">{{ '✓' if e['is_done'] else '' }}</button>
                 </form>
+              {% else %}
+                <span class="calendar-event-icon">{{ e['icon'] or '📌' }}</span>
               {% endif %}
-              <span style="flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap">
+              <span class="calendar-chip-title">
                 {{ e['title'] }}{% if e['user_id'] != current_user['id'] %} <span class="muted">({{ e['owner_display_name'] or e['owner_username'] }})</span>{% endif %}
               </span>
-              {% if e['user_id'] == current_user['id'] %}
-                <form method="post" action="{{ url_for('calendar_bp.delete_event', event_id=e['id']) }}" data-confirm="Opravdu smazat tuto událost?">
-                  <input type="hidden" name="month_key" value="{{ month_key }}">
-                  <button type="submit" title="Smazat">&times;</button>
-                </form>
-              {% endif %}
             </div>
           {% endfor %}
         </div>
@@ -136,4 +131,27 @@
     {% endfor %}
   {% endfor %}
 </div>
+
+<div class="event-modal-overlay" id="event-modal-overlay">
+  <div class="event-modal" id="event-modal">
+    <button type="button" class="event-modal-close" id="event-modal-close">&times;</button>
+    <div class="event-modal-loading" id="event-modal-loading">Načítám…</div>
+    <div id="event-modal-body" style="display:none">
+      <div class="event-modal-head">
+        <span class="event-modal-icon" id="event-modal-icon"></span>
+        <h2 id="event-modal-title"></h2>
+      </div>
+      <div class="event-modal-meta" id="event-modal-meta"></div>
+      <div class="event-modal-notes" id="event-modal-notes"></div>
+      <div class="event-modal-invites" id="event-modal-invites"></div>
+      <div class="event-modal-actions" id="event-modal-actions"></div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  window.PIPLY_CALENDAR_MONTH_KEY = "{{ month_key }}";
+</script>
 {% endblock %}

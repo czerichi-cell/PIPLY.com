@@ -770,19 +770,63 @@ html.piply-fading body {
 .calendar-cell-daynum { font-size: 12px; color: var(--text-muted); font-weight: 600; margin-bottom: 2px; }
 .calendar-cell.is-today .calendar-cell-daynum { color: var(--accent); }
 .calendar-event-chip {
-  font-size: 11px; padding: 3px 6px; border-radius: 5px; background: var(--bg-elevated);
-  display: flex; align-items: center; gap: 4px; line-height: 1.3;
+  font-size: 11px; padding: 4px 6px; border-radius: 5px; background: var(--bg-elevated);
+  display: flex; align-items: center; gap: 6px; line-height: 1.3;
   border-left: 3px solid var(--accent);
+  cursor: pointer; transition: background .12s ease;
 }
+.calendar-event-chip:hover { background: var(--card-hover); }
 .calendar-event-chip.is-task.is-done { opacity: .5; text-decoration: line-through; }
 .calendar-event-chip.is-shared { box-shadow: inset 0 0 0 1px var(--border); }
 .calendar-event-chip.priority-high { font-weight: 700; }
 .calendar-event-icon { flex-shrink: 0; font-size: 12px; line-height: 1; }
-.calendar-event-chip form { display: inline-flex; margin: 0; }
-.calendar-event-chip button {
-  background: none; border: none; color: inherit; cursor: pointer; padding: 0; display: flex; opacity: .6;
+.calendar-chip-title { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.calendar-chip-check-form { display: inline-flex; margin: 0; }
+.calendar-chip-check {
+  width: 15px; height: 15px; border-radius: 4px; border: 1.5px solid var(--text-faint);
+  background: none; cursor: pointer; padding: 0; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px; color: var(--accent-ink); line-height: 1;
 }
-.calendar-event-chip button:hover { opacity: 1; }
+.calendar-event-chip.is-done .calendar-chip-check { background: var(--accent); border-color: var(--accent); }
+.calendar-chip-check:hover { border-color: var(--accent); }
+
+/* ============ Detail udalosti (modal) ============ */
+.event-modal-overlay {
+  display: none; position: fixed; inset: 0; z-index: 900;
+  background: rgba(0,0,0,0.6); align-items: center; justify-content: center; padding: 20px;
+}
+.event-modal-overlay.open { display: flex; }
+.event-modal {
+  background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+  width: 100%; max-width: 420px; padding: 22px; position: relative; max-height: 85vh; overflow-y: auto;
+}
+.event-modal-close {
+  position: absolute; top: 12px; right: 14px; background: none; border: none;
+  color: var(--text-faint); font-size: 22px; line-height: 1; cursor: pointer;
+}
+.event-modal-close:hover { color: var(--text); }
+.event-modal-loading { text-align: center; padding: 30px; color: var(--text-faint); }
+.event-modal-head { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; padding-right: 20px; }
+.event-modal-icon { font-size: 22px; }
+.event-modal-head h2 { font-size: 18px; margin: 0; }
+.event-modal-meta { color: var(--text-muted); font-size: 13px; margin-bottom: 12px; }
+.event-modal-notes {
+  background: var(--bg-elevated); border-radius: var(--radius-sm); padding: 10px 12px;
+  font-size: 13.5px; color: var(--text); margin-bottom: 14px; white-space: pre-wrap;
+}
+.event-modal-invites { margin-bottom: 14px; }
+.event-modal-invites-title { font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .03em; color: var(--text-faint); margin-bottom: 6px; }
+.event-modal-invite-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 6px 0; border-bottom: 1px solid var(--border); font-size: 13.5px;
+}
+.event-modal-invite-row:last-child { border-bottom: none; }
+.invite-status-pill { font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 999px; }
+.invite-status-pill.invite-status-accepted { background: var(--green-dim); color: var(--green); }
+.invite-status-pill.invite-status-pending { background: var(--bg-elevated); color: var(--text-faint); }
+.invite-status-pill.invite-status-declined { background: var(--red-dim); color: var(--red); }
+.event-modal-actions { display: flex; gap: 8px; flex-wrap: wrap; }
 
 .color-swatch-row, .icon-swatch-row { display: flex; flex-wrap: wrap; gap: 8px; }
 .color-swatch {
