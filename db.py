@@ -45,6 +45,14 @@ def _run_migrations(conn):
     if "invite_id" not in msg_cols:
         conn.execute("ALTER TABLE messages ADD COLUMN invite_id INTEGER")
 
+    cal_cols = {row[1] for row in conn.execute("PRAGMA table_info(calendar_events)").fetchall()}
+    if "color" not in cal_cols:
+        conn.execute("ALTER TABLE calendar_events ADD COLUMN color TEXT DEFAULT '#7ed957'")
+    if "icon" not in cal_cols:
+        conn.execute("ALTER TABLE calendar_events ADD COLUMN icon TEXT DEFAULT '📌'")
+    if "priority" not in cal_cols:
+        conn.execute("ALTER TABLE calendar_events ADD COLUMN priority TEXT DEFAULT 'medium'")
+
     user_cols = {row[1] for row in conn.execute("PRAGMA table_info(users)").fetchall()}
     if "points" not in user_cols:
         conn.execute("ALTER TABLE users ADD COLUMN points INTEGER DEFAULT 0")

@@ -1,4 +1,5 @@
 import calendar as calendar_module
+import re
 from datetime import date, datetime, timedelta
 
 from flask import Blueprint, render_template, request, redirect, url_for, flash, g
@@ -113,6 +114,13 @@ def new_event():
     kind = request.form.get("kind", "task")
     if kind not in ("task", "note"):
         kind = "task"
+    color = request.form.get("color", "#7ed957").strip()
+    if not re.match(r"^#[0-9a-fA-F]{6}$", color):
+        color = "#7ed957"
+    icon = request.form.get("icon", "📌").strip()[:8] or "📌"
+    priority = request.form.get("priority", "medium")
+    if priority not in ("low", "medium", "high"):
+        priority = "medium"
     invite_username = request.form.get("invite_username", "").strip()
     month_key = request.form.get("month_key", "")
 
@@ -121,9 +129,9 @@ def new_event():
         return redirect(url_for("calendar_bp.view", month=month_key, date=event_date))
 
     event_id = execute(
-        """INSERT INTO calendar_events (user_id, title, notes, event_date, event_time, kind)
-           VALUES (?,?,?,?,?,?)""",
-        (me, title, notes, event_date, event_time, kind),
+        """INSERT INTO calendar_events (user_id, title, notes, event_date, event_time, kind, color, icon, priority)
+           VALUES (?,?,?,?,?,?,?,?,?)""",
+        (me, title, notes, event_date, event_time, kind, color, icon, priority),
     )
 
     if invite_username:

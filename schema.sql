@@ -121,6 +121,9 @@ CREATE TABLE IF NOT EXISTS calendar_events (
     event_time TEXT,
     kind TEXT CHECK(kind IN ('note','task')) DEFAULT 'task',
     is_done INTEGER DEFAULT 0,
+    color TEXT DEFAULT '#7ed957',
+    icon TEXT DEFAULT '📌',
+    priority TEXT CHECK(priority IN ('low','medium','high')) DEFAULT 'medium',
     created_at TEXT DEFAULT (datetime('now')),
     FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
 );

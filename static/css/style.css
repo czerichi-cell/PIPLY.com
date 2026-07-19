@@ -772,14 +772,32 @@ html.piply-fading body {
 .calendar-event-chip {
   font-size: 11px; padding: 3px 6px; border-radius: 5px; background: var(--bg-elevated);
   display: flex; align-items: center; gap: 4px; line-height: 1.3;
+  border-left: 3px solid var(--accent);
 }
 .calendar-event-chip.is-task.is-done { opacity: .5; text-decoration: line-through; }
-.calendar-event-chip.is-shared { border-left: 2px solid var(--accent); }
+.calendar-event-chip.is-shared { box-shadow: inset 0 0 0 1px var(--border); }
+.calendar-event-chip.priority-high { font-weight: 700; }
+.calendar-event-icon { flex-shrink: 0; font-size: 12px; line-height: 1; }
 .calendar-event-chip form { display: inline-flex; margin: 0; }
 .calendar-event-chip button {
   background: none; border: none; color: inherit; cursor: pointer; padding: 0; display: flex; opacity: .6;
 }
 .calendar-event-chip button:hover { opacity: 1; }
+
+.color-swatch-row, .icon-swatch-row { display: flex; flex-wrap: wrap; gap: 8px; }
+.color-swatch {
+  width: 26px; height: 26px; border-radius: 50%; cursor: pointer; display: block;
+  border: 2px solid transparent; box-sizing: border-box; position: relative;
+}
+.color-swatch input { position: absolute; opacity: 0; width: 100%; height: 100%; cursor: pointer; margin: 0; }
+.color-swatch:has(input:checked) { border-color: var(--text); box-shadow: 0 0 0 2px var(--bg); }
+.icon-swatch {
+  width: 32px; height: 32px; border-radius: var(--radius-sm); background: var(--bg-elevated);
+  border: 2px solid transparent; display: flex; align-items: center; justify-content: center;
+  cursor: pointer; font-size: 15px; position: relative;
+}
+.icon-swatch input { position: absolute; opacity: 0; width: 100%; height: 100%; cursor: pointer; margin: 0; }
+.icon-swatch:has(input:checked) { border-color: var(--accent); background: var(--accent-dim); }
 .calendar-add-form {
   background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
   padding: 16px; margin-bottom: 16px;

@@ -35,6 +35,14 @@
         <option value="note">Poznámka</option>
       </select>
     </div>
+    <div class="field" style="max-width:160px">
+      <label>Priorita</label>
+      <select name="priority">
+        <option value="low">Nízká</option>
+        <option value="medium" selected>Střední</option>
+        <option value="high">Vysoká</option>
+      </select>
+    </div>
     {% if friends %}
     <div class="field" style="max-width:220px">
       <label>Pozvat kamaráda (volitelně)</label>
@@ -47,6 +55,31 @@
     </div>
     {% endif %}
   </div>
+
+  <div class="field-row">
+    <div class="field">
+      <label>Barva</label>
+      <div class="color-swatch-row">
+        {% for c in ['#7ed957','#ff4757','#3b82f6','#f59e0b','#a855f7','#ec4899','#14b8a6','#f97316'] %}
+          <label class="color-swatch" style="background:{{ c }}">
+            <input type="radio" name="color" value="{{ c }}" {{ 'checked' if loop.first }}>
+          </label>
+        {% endfor %}
+      </div>
+    </div>
+    <div class="field">
+      <label>Ikonka</label>
+      <div class="icon-swatch-row">
+        {% for i in ['📌','📅','💰','📈','📉','🎯','⏰','📞','✅','🔥','📝','🚀'] %}
+          <label class="icon-swatch">
+            <input type="radio" name="icon" value="{{ i }}" {{ 'checked' if loop.first }}>
+            <span>{{ i }}</span>
+          </label>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
   <button type="submit" class="btn" style="margin-top:8px">Přidat</button>
 </form>
 
@@ -77,8 +110,10 @@
         <div class="calendar-cell {{ 'is-today' if date_str == today_str }}">
           <a href="{{ url_for('calendar_bp.view', month=month_key, date=date_str) }}" class="calendar-cell-daynum" style="text-decoration:none">{{ day }}</a>
           {% for e in events_by_day.get(date_str, []) %}
-            <div class="calendar-event-chip {{ 'is-task' if e['kind']=='task' }} {{ 'is-done' if e['is_done'] }} {{ 'is-shared' if e['user_id'] != current_user['id'] }}"
+            <div class="calendar-event-chip {{ 'is-task' if e['kind']=='task' }} {{ 'is-done' if e['is_done'] }} {{ 'is-shared' if e['user_id'] != current_user['id'] }} priority-{{ e['priority'] or 'medium' }}"
+                 style="border-left-color:{{ e['color'] or '#7ed957' }}"
                  title="{{ e['notes'] or '' }}">
+              <span class="calendar-event-icon">{{ e['icon'] or '📌' }}</span>
               {% if e['kind'] == 'task' and e['user_id'] == current_user['id'] %}
                 <form method="post" action="{{ url_for('calendar_bp.toggle_event', event_id=e['id']) }}">
                   <input type="hidden" name="month_key" value="{{ month_key }}">
