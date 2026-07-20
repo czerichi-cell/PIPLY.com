@@ -3,85 +3,88 @@
 {% block content %}
 <div class="page-header">
   <h1>Kalendář</h1>
+  <button type="button" class="btn btn-sm" id="calendar-add-toggle">+ Přidat</button>
 </div>
 
-<form class="calendar-add-form" method="post" action="{{ url_for('calendar_bp.new_event') }}">
-  <input type="hidden" name="month_key" value="{{ month_key }}">
-  <div class="field-row">
-    <div class="field">
-      <label>Název</label>
-      <input type="text" name="title" placeholder="Např. Rozbor týdne, schůzka…" required maxlength="120">
-    </div>
-    <div class="field" style="max-width:160px">
-      <label>Datum</label>
-      <input type="date" name="event_date" value="{{ selected_date }}" required>
-    </div>
-    <div class="field" style="max-width:120px">
-      <label>Čas (volitelně)</label>
-      <input type="time" name="event_time">
-    </div>
-  </div>
-  <div class="field-row">
-    <div class="field">
-      <label>Poznámka (volitelně)</label>
-      <textarea name="notes" rows="2" placeholder="Detaily…"></textarea>
-    </div>
-  </div>
-  <div class="field-row">
-    <div class="field" style="max-width:160px">
-      <label>Typ</label>
-      <select name="kind">
-        <option value="task">Úkol</option>
-        <option value="note">Poznámka</option>
-      </select>
-    </div>
-    <div class="field" style="max-width:160px">
-      <label>Priorita</label>
-      <select name="priority">
-        <option value="low">Nízká</option>
-        <option value="medium" selected>Střední</option>
-        <option value="high">Vysoká</option>
-      </select>
-    </div>
-    {% if friends %}
-    <div class="field" style="max-width:220px">
-      <label>Pozvat kamaráda (volitelně)</label>
-      <select name="invite_username">
-        <option value="">— nikdo —</option>
-        {% for f in friends %}
-          <option value="{{ f['username'] }}">{{ f['display_name'] or f['username'] }}</option>
-        {% endfor %}
-      </select>
-    </div>
-    {% endif %}
-  </div>
-
-  <div class="field-row">
-    <div class="field">
-      <label>Barva</label>
-      <div class="color-swatch-row">
-        {% for c in ['#7ed957','#ff4757','#3b82f6','#f59e0b','#a855f7','#ec4899','#14b8a6','#f97316'] %}
-          <label class="color-swatch" style="background:{{ c }}">
-            <input type="radio" name="color" value="{{ c }}" {{ 'checked' if loop.first }}>
-          </label>
-        {% endfor %}
+<div class="calendar-add-wrap" id="calendar-add-wrap" style="display:none">
+  <form class="calendar-add-form" method="post" action="{{ url_for('calendar_bp.new_event') }}">
+    <input type="hidden" name="month_key" value="{{ month_key }}">
+    <div class="field-row">
+      <div class="field">
+        <label>Název</label>
+        <input type="text" name="title" placeholder="Např. Rozbor týdne, schůzka…" required maxlength="120">
+      </div>
+      <div class="field" style="max-width:160px">
+        <label>Datum</label>
+        <input type="date" name="event_date" id="calendar-add-date" value="{{ selected_date }}" required>
+      </div>
+      <div class="field" style="max-width:120px">
+        <label>Čas (volitelně)</label>
+        <input type="time" name="event_time">
       </div>
     </div>
-    <div class="field">
-      <label>Ikonka</label>
-      <div class="icon-swatch-row">
-        {% for i in ['📌','📅','💰','📈','📉','🎯','⏰','📞','✅','🔥','📝','🚀'] %}
-          <label class="icon-swatch">
-            <input type="radio" name="icon" value="{{ i }}" {{ 'checked' if loop.first }}>
-            <span>{{ i }}</span>
-          </label>
-        {% endfor %}
+    <div class="field-row">
+      <div class="field">
+        <label>Poznámka (volitelně)</label>
+        <textarea name="notes" rows="2" placeholder="Detaily…"></textarea>
       </div>
     </div>
-  </div>
+    <div class="field-row">
+      <div class="field" style="max-width:160px">
+        <label>Typ</label>
+        <select name="kind">
+          <option value="task">Úkol</option>
+          <option value="note">Poznámka</option>
+        </select>
+      </div>
+      <div class="field" style="max-width:160px">
+        <label>Priorita</label>
+        <select name="priority">
+          <option value="low">Nízká</option>
+          <option value="medium" selected>Střední</option>
+          <option value="high">Vysoká</option>
+        </select>
+      </div>
+      {% if friends %}
+      <div class="field" style="max-width:220px">
+        <label>Pozvat kamaráda (volitelně)</label>
+        <select name="invite_username">
+          <option value="">— nikdo —</option>
+          {% for f in friends %}
+            <option value="{{ f['username'] }}">{{ f['display_name'] or f['username'] }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      {% endif %}
+    </div>
 
-  <button type="submit" class="btn" style="margin-top:8px">Přidat</button>
-</form>
+    <div class="field-row">
+      <div class="field">
+        <label>Barva</label>
+        <div class="color-swatch-row">
+          {% for c in ['#7ed957','#ff4757','#3b82f6','#f59e0b','#a855f7','#ec4899','#14b8a6','#f97316'] %}
+            <label class="color-swatch" style="background:{{ c }}">
+              <input type="radio" name="color" value="{{ c }}" {{ 'checked' if loop.first }}>
+            </label>
+          {% endfor %}
+        </div>
+      </div>
+      <div class="field">
+        <label>Ikonka</label>
+        <div class="icon-swatch-row">
+          {% for i in ['📌','📅','💰','📈','📉','🎯','⏰','📞','✅','🔥','📝','🚀'] %}
+            <label class="icon-swatch">
+              <input type="radio" name="icon" value="{{ i }}" {{ 'checked' if loop.first }}>
+              <span>{{ i }}</span>
+            </label>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+    <button type="submit" class="btn" style="margin-top:8px">Přidat</button>
+  </form>
+</div>
 
 <div class="calendar-header">
   <h2 style="margin:0">{{ month_name }} {{ year }}</h2>
@@ -107,29 +110,26 @@
         <div class="calendar-cell is-empty"></div>
       {% else %}
         {% set date_str = "%04d-%02d-%02d"|format(year, month, day) %}
-        <div class="calendar-cell {{ 'is-today' if date_str == today_str }}">
-          <a href="{{ url_for('calendar_bp.view', month=month_key, date=date_str) }}" class="calendar-cell-daynum" style="text-decoration:none">{{ day }}</a>
-          {% for e in events_by_day.get(date_str, []) %}
-            <div class="calendar-event-chip {{ 'is-task' if e['kind']=='task' }} {{ 'is-done' if e['is_done'] }} {{ 'is-shared' if e['user_id'] != current_user['id'] }} priority-{{ e['priority'] or 'medium' }}"
-                 style="border-left-color:{{ e['color'] or '#7ed957' }}"
-                 data-event-id="{{ e['id'] }}">
-              {% if e['kind'] == 'task' and e['user_id'] == current_user['id'] %}
-                <form method="post" action="{{ url_for('calendar_bp.toggle_event', event_id=e['id']) }}" class="calendar-chip-check-form">
-                  <input type="hidden" name="month_key" value="{{ month_key }}">
-                  <button type="submit" class="calendar-chip-check" title="Splněno/nesplněno">{{ '✓' if e['is_done'] else '' }}</button>
-                </form>
-              {% else %}
-                <span class="calendar-event-icon">{{ e['icon'] or '📌' }}</span>
-              {% endif %}
-              <span class="calendar-chip-title">
-                {{ e['title'] }}{% if e['user_id'] != current_user['id'] %} <span class="muted">({{ e['owner_display_name'] or e['owner_username'] }})</span>{% endif %}
-              </span>
-            </div>
-          {% endfor %}
-        </div>
+        {% set day_events = events_by_day.get(date_str, []) %}
+        <button type="button" class="calendar-daybtn {{ 'is-today' if date_str == today_str }} {{ 'is-selected' if date_str == selected_date }}" data-date="{{ date_str }}">
+          <span class="calendar-daynum">{{ day }}</span>
+          {% if day_events %}
+            <span class="calendar-day-dots">
+              {% for e in day_events[:4] %}<span class="calendar-dot" style="background:{{ e['color'] or '#7ed957' }}"></span>{% endfor %}
+            </span>
+          {% endif %}
+        </button>
       {% endif %}
     {% endfor %}
   {% endfor %}
+</div>
+
+<div class="card calendar-day-panel">
+  <div class="calendar-day-panel-header">
+    <h3 id="calendar-day-panel-title">—</h3>
+    <button type="button" class="btn btn-ghost btn-sm" id="calendar-day-panel-add">+ Přidat na tento den</button>
+  </div>
+  <div id="calendar-day-panel-list"></div>
 </div>
 
 <div class="event-modal-overlay" id="event-modal-overlay">
@@ -153,5 +153,8 @@
 {% block scripts %}
 <script>
   window.PIPLY_CALENDAR_MONTH_KEY = "{{ month_key }}";
+  window.PIPLY_CALENDAR_TODAY = "{{ today_str }}";
+  window.PIPLY_CALENDAR_SELECTED = "{{ selected_date }}";
+  window.PIPLY_CALENDAR_EVENTS = {{ events_json|tojson }};
 </script>
 {% endblock %}

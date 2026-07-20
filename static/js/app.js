@@ -393,12 +393,85 @@ function initRepositionTool(frameEl, imgEl, hiddenInput) {
     }
   }
 
-  document.querySelectorAll(".calendar-event-chip").forEach((chip) => {
-    chip.addEventListener("click", (e) => {
-      if (e.target.closest(".calendar-chip-check-form")) return;
-      openModal(chip.dataset.eventId);
+  // Delegovane kliknuti funguje jak pro cipy vykreslene serverem (uvnitr .calendar-grid,
+  // pokud by tam nekdy byly), tak pro ty dynamicky vykreslene v panelu vybraneho dne.
+  document.addEventListener("click", (e) => {
+    const chip = e.target.closest(".calendar-event-chip");
+    if (!chip) return;
+    if (e.target.closest(".calendar-chip-check-form")) return;
+    openModal(chip.dataset.eventId);
+  });
+
+  // --- Panel vybraneho dne: klik na cislo dne v mrizce ukaze udalosti toho dne dole ---
+
+  const events = window.PIPLY_CALENDAR_EVENTS || {};
+  const panelTitle = document.getElementById("calendar-day-panel-title");
+  const panelList = document.getElementById("calendar-day-panel-list");
+  const panelAddBtn = document.getElementById("calendar-day-panel-add");
+  const addWrap = document.getElementById("calendar-add-wrap");
+  const addToggleBtn = document.getElementById("calendar-add-toggle");
+  const addDateInput = document.getElementById("calendar-add-date");
+  let selectedDate = window.PIPLY_CALENDAR_SELECTED || window.PIPLY_CALENDAR_TODAY;
+
+  function formatDateNice(dateStr) {
+    const parts = dateStr.split("-");
+    return `${parts[2]}. ${parts[1]}. ${parts[0]}`;
+  }
+
+  function chipHTML(e) {
+    const checkHtml = (e.kind === "task" && e.is_mine)
+      ? `<form method="post" action="/calendar/${e.id}/toggle" class="calendar-chip-check-form" onclick="event.stopPropagation()">
+           <input type="hidden" name="month_key" value="${monthKey}">
+           <button type="submit" class="calendar-chip-check">${e.is_done ? "✓" : ""}</button>
+         </form>`
+      : `<span class="calendar-event-icon">${e.icon}</span>`;
+    const ownerHtml = !e.is_mine ? ` <span class="muted">(${e.owner_name})</span>` : "";
+    return `
+      <div class="calendar-event-chip calendar-event-chip-full ${e.kind === "task" ? "is-task" : ""} ${e.is_done ? "is-done" : ""} priority-${e.priority}"
+           style="border-left-color:${e.color}" data-event-id="${e.id}">
+        ${checkHtml}
+        <span class="calendar-chip-title">${e.time ? `<b>${e.time}</b> ` : ""}${e.title}${ownerHtml}</span>
+      </div>`;
+  }
+
+  function renderPanel() {
+    panelTitle.textContent = formatDateNice(selectedDate) + (selectedDate === window.PIPLY_CALENDAR_TODAY ? " · Dnes" : "");
+    const dayEvents = events[selectedDate] || [];
+    if (!dayEvents.length) {
+      panelList.innerHTML = '<p class="muted" style="padding:10px 0">Žádné události tento den.</p>';
+    } else {
+      panelList.innerHTML = dayEvents.map(chipHTML).join("");
+    }
+  }
+
+  document.querySelectorAll(".calendar-daybtn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      document.querySelectorAll(".calendar-daybtn.is-selected").forEach((b) => b.classList.remove("is-selected"));
+      btn.classList.add("is-selected");
+      selectedDate = btn.dataset.date;
+      renderPanel();
     });
   });
+
+  if (panelTitle) renderPanel();
+
+  // --- Skryty/rozbaleny formular pro pridani udalosti ---
+
+  function openAddForm(prefillDate) {
+    addWrap.style.display = "block";
+    if (prefillDate && addDateInput) addDateInput.value = prefillDate;
+    addWrap.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+  if (addToggleBtn) {
+    addToggleBtn.addEventListener("click", () => {
+      const isOpen = addWrap.style.display !== "none";
+      addWrap.style.display = isOpen ? "none" : "block";
+      if (!isOpen) addWrap.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  }
+  if (panelAddBtn) {
+    panelAddBtn.addEventListener("click", () => openAddForm(selectedDate));
+  }
 })();
 
 function buildInviteCardHTML(invite) {
