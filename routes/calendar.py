@@ -91,25 +91,11 @@ def view():
 
     today_str = date.today().isoformat()
 
-    events_json = {}
-    for day_str, day_events in events_by_day.items():
-        events_json[day_str] = [
-            {
-                "id": e["id"], "title": e["title"], "time": e["event_time"],
-                "kind": e["kind"], "is_done": bool(e["is_done"]),
-                "color": e["color"] or "#7ed957", "icon": e["icon"] or "📌",
-                "priority": e["priority"] or "medium",
-                "is_mine": e["user_id"] == me,
-                "owner_name": e["owner_display_name"] or e["owner_username"],
-            }
-            for e in day_events
-        ]
-
     return render_template(
         "calendar/view.html",
         year=year, month=month, month_key=month_key,
         month_name=CZ_MONTHS[month - 1], day_names=CZ_DAYS,
-        weeks=weeks, events_by_day=events_by_day, events_json=events_json,
+        weeks=weeks, events_by_day=events_by_day,
         prev_month_key=f"{prev_year:04d}-{prev_month:02d}",
         next_month_key=f"{next_year:04d}-{next_month:02d}",
         friends=friends, selected_date=selected_date or today_str,
