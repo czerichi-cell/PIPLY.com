@@ -32,6 +32,19 @@
       <label>Zobrazované jméno</label>
       <input type="text" name="display_name" value="{{ current_user['display_name'] or '' }}">
     </div>
+
+    {% if not current_user['email'] %}
+    <div class="card" style="border-color: var(--amber); margin-bottom: 16px">
+      <p style="margin:0"><b>⚠️ Nemáš u účtu nastavený e-mail.</b><br>
+      Potřebujeme ho hlavně pro případ, že zapomeneš heslo – bez e-mailu bychom ti ho nemohli
+      pomoct obnovit a o přístup k účtu bys mohl(a) přijít natrvalo. Doplň si ho prosím níže.</p>
+    </div>
+    {% endif %}
+
+    <div class="field">
+      <label>E-mail</label>
+      <input type="email" name="email" value="{{ current_user['email'] or '' }}" placeholder="tvuj@email.cz">
+    </div>
     <div class="field">
       <label>O mně</label>
       <textarea name="bio" maxlength="500" placeholder="Pár slov o tvém tradingu…">{{ current_user['bio'] or '' }}</textarea>

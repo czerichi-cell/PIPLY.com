@@ -393,12 +393,25 @@ function initRepositionTool(frameEl, imgEl, hiddenInput) {
     }
   }
 
-  document.querySelectorAll(".calendar-event-chip").forEach((chip) => {
-    chip.addEventListener("click", (e) => {
-      if (e.target.closest(".calendar-chip-check-form")) return;
-      openModal(chip.dataset.eventId);
-    });
+  // Delegovane kliknuti na cip udalosti primo v mrizce otevre detail
+  document.addEventListener("click", (e) => {
+    const chip = e.target.closest(".calendar-event-chip");
+    if (!chip) return;
+    if (e.target.closest(".calendar-chip-check-form")) return;
+    openModal(chip.dataset.eventId);
   });
+
+  // --- Skryty/rozbaleny formular pro pridani udalosti ---
+
+  const addWrap = document.getElementById("calendar-add-wrap");
+  const addToggleBtn = document.getElementById("calendar-add-toggle");
+  if (addToggleBtn && addWrap) {
+    addToggleBtn.addEventListener("click", () => {
+      const isOpen = addWrap.style.display !== "none";
+      addWrap.style.display = isOpen ? "none" : "block";
+      if (!isOpen) addWrap.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  }
 })();
 
 function buildInviteCardHTML(invite) {

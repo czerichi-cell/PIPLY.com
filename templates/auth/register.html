@@ -16,8 +16,8 @@
       <input type="text" id="display_name" name="display_name" value="{{ form.get('display_name','') }}" placeholder="Např. Petr K.">
     </div>
     <div class="field">
-      <label for="email">E-mail (volitelné)</label>
-      <input type="email" id="email" name="email" value="{{ form.get('email','') }}">
+      <label for="email">E-mail</label>
+      <input type="email" id="email" name="email" value="{{ form.get('email','') }}" required>
     </div>
     <div class="field-row">
       <div class="field">

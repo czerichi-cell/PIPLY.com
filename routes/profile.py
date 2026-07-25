@@ -129,11 +129,23 @@ def edit_profile():
                 banner_path = None
         banner_position = request.form.get("banner_position", "").strip() or g.user["banner_position"] or "50% 50%"
 
+        email = request.form.get("email", "").strip().lower()
+        if email and email != (g.user["email"] or ""):
+            if "@" not in email or "." not in email.split("@")[-1]:
+                flash("Zadej prosím platnou e-mailovou adresu.", "error")
+                return redirect(url_for("profile.edit_profile"))
+            existing = query_one("SELECT id FROM users WHERE email=? AND id!=?", (email, g.user["id"]))
+            if existing:
+                flash("Tento e-mail už používá jiný účet.", "error")
+                return redirect(url_for("profile.edit_profile"))
+        else:
+            email = g.user["email"]
+
         execute(
             """UPDATE users SET display_name=?, bio=?, avatar_path=?, starting_capital=?,
-               banner_path=?, selected_banner_key=?, avatar_position=?, banner_position=? WHERE id=?""",
+               banner_path=?, selected_banner_key=?, avatar_position=?, banner_position=?, email=? WHERE id=?""",
             (display_name, bio, avatar_path, starting_capital, banner_path, selected_banner_key,
-             avatar_position, banner_position, g.user["id"]),
+             avatar_position, banner_position, email, g.user["id"]),
         )
         flash("Profil uložen.", "success")
         return redirect(url_for("profile.view_profile", username=g.user["username"]))
