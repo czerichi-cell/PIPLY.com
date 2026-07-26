@@ -412,6 +412,40 @@ function initRepositionTool(frameEl, imgEl, hiddenInput) {
       if (!isOpen) addWrap.scrollIntoView({ behavior: "smooth", block: "start" });
     });
   }
+
+  // --- Mobil: klik na den ukaze citelny seznam udalosti pod kalendarem ---
+  // (na mobilu se udalosti v samotne bunce smrsknou na tecky, protoze na
+  // text/ikonku/checkbox tam proste neni misto - viz .calendar-event-chip v mobilni media query)
+
+  const dayDetail = document.getElementById("calendar-mobile-day-detail");
+  const dayDetailTitle = document.getElementById("calendar-mobile-day-title");
+  const dayDetailList = document.getElementById("calendar-mobile-day-list");
+
+  function formatDateNice(dateStr) {
+    const parts = dateStr.split("-");
+    return `${parts[2]}. ${parts[1]}. ${parts[0]}`;
+  }
+
+  if (dayDetail && dayDetailList) {
+    document.querySelectorAll(".calendar-cell[data-date]").forEach((cell) => {
+      cell.addEventListener("click", (e) => {
+        if (window.innerWidth > 700) return; // na desktopu ma smysl jen samotny klik na cip
+        if (e.target.closest(".calendar-chip-check-form")) return;
+
+        const dateStr = cell.dataset.date;
+        dayDetailTitle.textContent = formatDateNice(dateStr) + (dateStr === window.PIPLY_CALENDAR_TODAY ? " · Dnes" : "");
+
+        const chips = cell.querySelectorAll(".calendar-event-chip");
+        dayDetailList.innerHTML = "";
+        if (!chips.length) {
+          dayDetailList.innerHTML = '<p class="muted" style="padding:8px 0">Žádné události tento den.</p>';
+        } else {
+          chips.forEach((chip) => dayDetailList.appendChild(chip.cloneNode(true)));
+        }
+        dayDetail.style.display = "block";
+      });
+    });
+  }
 })();
 
 function buildInviteCardHTML(invite) {

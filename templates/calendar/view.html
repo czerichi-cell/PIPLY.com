@@ -110,11 +110,11 @@
         <div class="calendar-cell is-empty"></div>
       {% else %}
         {% set date_str = "%04d-%02d-%02d"|format(year, month, day) %}
-        <div class="calendar-cell {{ 'is-today' if date_str == today_str }}">
+        <div class="calendar-cell {{ 'is-today' if date_str == today_str }}" data-date="{{ date_str }}">
           <a href="{{ url_for('calendar_bp.view', month=month_key, date=date_str) }}" class="calendar-cell-daynum" style="text-decoration:none">{{ day }}</a>
           {% for e in events_by_day.get(date_str, []) %}
             <div class="calendar-event-chip {{ 'is-task' if e['kind']=='task' }} {{ 'is-done' if e['is_done'] }} {{ 'is-shared' if e['user_id'] != current_user['id'] }} priority-{{ e['priority'] or 'medium' }}"
-                 style="border-left-color:{{ e['color'] or '#7ed957' }}"
+                 style="border-left-color:{{ e['color'] or '#7ed957' }}; --chip-color:{{ e['color'] or '#7ed957' }}"
                  data-event-id="{{ e['id'] }}">
               {% if e['kind'] == 'task' and e['user_id'] == current_user['id'] %}
                 <form method="post" action="{{ url_for('calendar_bp.toggle_event', event_id=e['id']) }}" class="calendar-chip-check-form">
@@ -133,6 +133,13 @@
       {% endif %}
     {% endfor %}
   {% endfor %}
+</div>
+
+<div class="card calendar-mobile-day-detail" id="calendar-mobile-day-detail" style="display:none">
+  <div class="calendar-day-panel-header">
+    <h3 id="calendar-mobile-day-title">—</h3>
+  </div>
+  <div id="calendar-mobile-day-list"></div>
 </div>
 
 <div class="event-modal-overlay" id="event-modal-overlay">
