@@ -111,7 +111,7 @@
       {% else %}
         {% set date_str = "%04d-%02d-%02d"|format(year, month, day) %}
         <div class="calendar-cell {{ 'is-today' if date_str == today_str }}" data-date="{{ date_str }}">
-          <a href="{{ url_for('calendar_bp.view', month=month_key, date=date_str) }}" class="calendar-cell-daynum" style="text-decoration:none">{{ day }}</a>
+          <span class="calendar-cell-daynum">{{ day }}</span>
           {% for e in events_by_day.get(date_str, []) %}
             <div class="calendar-event-chip {{ 'is-task' if e['kind']=='task' }} {{ 'is-done' if e['is_done'] }} {{ 'is-shared' if e['user_id'] != current_user['id'] }} priority-{{ e['priority'] or 'medium' }}"
                  style="border-left-color:{{ e['color'] or '#7ed957' }}; --chip-color:{{ e['color'] or '#7ed957' }}"

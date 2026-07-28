@@ -859,14 +859,16 @@ html.piply-fading body {
 
   /* Na uzsi obrazovce se do bunky nevejde text ani ikonka citelne - smrskneme
      kazdou udalost na malou barevnou tecku, a cely obsah dne uvidis po kliknuti
-     na den v panelu pod kalendarem (viz JS + .calendar-mobile-day-detail). */
-  .calendar-event-chip {
+     na den v panelu pod kalendarem (viz JS + .calendar-mobile-day-detail).
+     DULEZITE: tohle plati jen pro cipy primo v mrizce, ne pro jejich klony
+     v panelu detailu dne (#calendar-mobile-day-list) - tam maji zustat cele. */
+  .calendar-cell .calendar-event-chip {
     width: 7px; height: 7px; min-height: 0; padding: 0; margin: 0 1px;
     border-radius: 50%; background: var(--chip-color, var(--accent)); border-left: none;
     display: inline-flex; gap: 0; overflow: visible;
   }
-  .calendar-event-chip.is-done { opacity: .4; }
-  .calendar-event-chip > * { display: none; }
+  .calendar-cell .calendar-event-chip.is-done { opacity: .4; }
+  .calendar-cell .calendar-event-chip > * { display: none; }
   .calendar-cell { flex-direction: row; flex-wrap: wrap; align-content: flex-start; }
   .calendar-cell-daynum { width: 100%; }
 
